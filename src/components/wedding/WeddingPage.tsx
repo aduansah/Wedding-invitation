@@ -30,11 +30,11 @@ export function WeddingPage() {
   return (
     <>
       <MagicalFauna phase={faunaPhase} prominent={!envelopeDone} />
+      <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
       <main className="relative m-0 block w-full p-0">
         <ScrollProgress />
         <FloatingFlorals />
-        <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
         <Hero revealed={isRevealed} />
 
@@ -66,7 +66,7 @@ export function WeddingPage() {
           <EnvelopeReveal
             key="envelope"
             onOpenStart={() => {
-              void musicRef.current?.play();
+              musicRef.current?.play();
             }}
             onReveal={() => setIsRevealed(true)}
             onFinish={() => setEnvelopeDone(true)}

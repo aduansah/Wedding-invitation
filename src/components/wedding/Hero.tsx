@@ -49,13 +49,13 @@ export function Hero({ revealed = false }: { revealed?: boolean }) {
       id="home"
       className="relative -mt-0 flex min-h-[100svh] w-full items-center justify-center overflow-hidden bg-[#9c6b43]"
     >
-      <div ref={bgRef} className="absolute inset-0 top-0 scale-110">
+      <div ref={bgRef} className="absolute inset-0 top-0 scale-105 translate-y-[2%]">
         <Image
           src={WEDDING_IMAGES.hero}
           alt="Michael and Precious wedding celebration"
           fill
           priority
-          className="object-cover object-[center_20%]"
+          className="object-cover object-[center_52%] md:object-[center_48%]"
           sizes="100vw"
         />
 

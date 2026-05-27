@@ -7,7 +7,7 @@ import { COUPLE } from "@/lib/constants";
 type EnvelopeRevealProps = {
   onReveal: () => void;
   onFinish?: () => void;
-  /** Called synchronously on tap — use to start audio within the user gesture */
+  /** Called on first touch/pointer down — must run inside the user gesture for audio */
   onOpenStart?: () => void;
 };
 
@@ -17,6 +17,7 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
   const [phase, setPhase] = useState<OpenPhase>("closed");
   const touchStart = useRef({ x: 0, y: 0, time: 0 });
   const hasTriggered = useRef(false);
+  const musicStarted = useRef(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -25,11 +26,17 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
     };
   }, []);
 
+  const startMusic = useCallback(() => {
+    if (musicStarted.current) return;
+    musicStarted.current = true;
+    onOpenStart?.();
+  }, [onOpenStart]);
+
   const runOpenSequence = useCallback(() => {
     if (hasTriggered.current) return;
     hasTriggered.current = true;
 
-    onOpenStart?.();
+    startMusic();
 
     setPhase("seal");
     setTimeout(() => setPhase("flap"), 400);
@@ -42,7 +49,11 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
       onFinish?.();
       document.body.style.overflow = "";
     }, 2700);
-  }, [onReveal, onFinish, onOpenStart]);
+  }, [onReveal, onFinish, startMusic]);
+
+  const handlePointerDown = () => {
+    startMusic();
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStart.current = {
@@ -50,6 +61,7 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
       y: e.touches[0].clientY,
       time: Date.now(),
     };
+    startMusic();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -57,11 +69,15 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
     const dy = e.changedTouches[0].clientY - touchStart.current.y;
     const elapsed = Date.now() - touchStart.current.time;
 
-    if (
+    const isSwipe =
       Math.hypot(dx, dy) > 30 ||
       dy < -20 ||
-      (Math.hypot(dx, dy) < 12 && elapsed < 400)
-    ) {
+      dy > 20 ||
+      Math.abs(dx) > 30;
+
+    const isTap = Math.hypot(dx, dy) < 12 && elapsed < 400;
+
+    if (isSwipe || isTap) {
       runOpenSequence();
     }
   };
@@ -76,6 +92,7 @@ export function EnvelopeReveal({ onReveal, onFinish, onOpenStart }: EnvelopeReve
       tabIndex={0}
       aria-label="Tap or swipe to open wedding invitation"
       onClick={runOpenSequence}
+      onPointerDown={handlePointerDown}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") runOpenSequence();
       }}
