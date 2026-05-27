@@ -2,6 +2,16 @@ export const COUPLE = {
   groom: "Michael",
   bride: "Precious",
   full: "Michael & Precious",
+  initials: "M&P",
+} as const;
+
+export const HASHTAG = "#Mprez26";
+
+/** Drop your opener animation at public/videos/opener.mp4 (optional poster: opener-poster.jpg) */
+export const OPENER_VIDEO = {
+  src: "/videos/opener.mp4",
+  poster: undefined as string | undefined,
+  muted: true,
 } as const;
 
 export const WEDDING_DATES = {
@@ -13,6 +23,7 @@ export const EVENTS = [
   {
     id: "traditional",
     title: "Traditional Marriage",
+    emoji: "🤍",
     date: "Friday, July 17, 2026",
     time: "5:00 PM EST",
     dressCode: "All White",
@@ -23,8 +34,9 @@ export const EVENTS = [
   {
     id: "ceremony",
     title: "Wedding Ceremony",
+    emoji: "💒",
     date: "Saturday, July 18, 2026",
-    time: "2:00 PM",
+    time: "2:00 PM EST",
     venue: "Ghana Methodist Church of Toronto",
     address: "69 Milvan Dr, North York",
     icon: "church" as const,
@@ -32,8 +44,9 @@ export const EVENTS = [
   {
     id: "reception",
     title: "Reception",
+    emoji: "✨",
     date: "Saturday, July 18, 2026",
-    time: "6:00 PM",
+    time: "6:00 PM EST",
     dressCode: "Come Elegantly Dressed",
     venue: "Wesley Banquet Hall",
     address: "69 Milvan Dr, North York",
@@ -56,22 +69,11 @@ export const RSVP_CONTACTS = [
   { name: "Contact 4", phone: "(647) 785-7395", tel: "+16477857395" },
 ] as const;
 
-/**
- * Drop your photos into `public/images/` using these exact filenames.
- * Supported formats: .jpg, .jpeg, .png, .webp (update extensions below if needed)
- *
- * hero.jpeg      → Fullscreen hero banner (recommended: 1920×1080 or larger, landscape)
- * story.jpg      → Our Story section (recommended: portrait, 4:5 ratio)
- * gallery/01.jpeg → Gallery image 1 (tall)
- * gallery/02.jpeg → Gallery image 2 (wide)
- * gallery/03.jpeg → Gallery image 3
- * gallery/04.jpg  → Gallery image 4
- * gallery/05.jpg  → Gallery image 5 (wide)
- * gallery/06.jpeg → Gallery image 6 (tall)
- */
+/** Hero background + story photo + section divider */
 export const WEDDING_IMAGES = {
-  hero: "/images/hero.jpeg",
-  story: "/images/story.jpg",
+  heroBackground: "/images/hero-background.png",
+  story: "/images/story.png",
+  sectionBorder: "/images/boarder.png",
 } as const;
 
 export const GALLERY_IMAGES = [
@@ -107,14 +109,8 @@ export const GALLERY_IMAGES = [
   },
 ] as const;
 
-export const STORY_TEXT =
-  "Two hearts, one beautiful journey. Our forever begins here. Together with our Families, we invite you to join us celebrate our union in love.";
+export const CLOSING_MESSAGE = "Your presence will mean the world to us.";
 
-/**
- * Background music — drop your audio file here:
- * public/audio/wedding-music.mp3  (recommended)
- * Also works: .m4a, .wav, .ogg (update extension below)
- */
 export const WEDDING_AUDIO = {
   src: "/audio/wedding-music.mp3",
 } as const;

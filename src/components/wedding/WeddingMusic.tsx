@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
-import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import { Music, VolumeX } from "lucide-react";
 import { WEDDING_AUDIO } from "@/lib/constants";
 
@@ -19,6 +19,11 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasAudio, setHasAudio] = useState(true);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      setMounted(true);
+    }, []);
 
     const play = useCallback(() => {
       const audio = audioRef.current;
@@ -73,33 +78,26 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
       play();
     };
 
+    const button =
+      hasAudio && (revealed || isPlaying) ? (
+        <button
+          type="button"
+          onClick={toggleMusic}
+          aria-label={isPlaying ? "Mute background music" : "Play background music"}
+          className="fixed right-4 bottom-4 z-[300] flex h-9 w-9 items-center justify-center rounded-full border border-gold/35 bg-white/92 text-gold shadow-md backdrop-blur-sm transition-colors hover:border-purple hover:text-purple md:right-5 md:bottom-5"
+        >
+          {isPlaying ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Music className="h-4 w-4 opacity-75" />
+          )}
+        </button>
+      ) : null;
+
     return (
       <>
         <audio ref={audioRef} loop preload="auto" playsInline src={WEDDING_AUDIO.src} />
-
-        {hasAudio && (revealed || isPlaying) && (
-          <motion.button
-            type="button"
-            onClick={toggleMusic}
-            aria-label={isPlaying ? "Mute background music" : "Play background music"}
-            className="glow-button fixed z-[100] flex h-12 w-12 items-center justify-center rounded-full border border-champagne/30 bg-white/80 text-champagne shadow-lg backdrop-blur-md transition-colors hover:border-gold hover:text-gold md:h-14 md:w-14"
-            style={{
-              right: "max(1rem, env(safe-area-inset-right))",
-              bottom: "max(1rem, env(safe-area-inset-bottom))",
-            }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, type: "spring" }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isPlaying ? (
-              <VolumeX className="h-5 w-5" />
-            ) : (
-              <Music className="h-5 w-5 opacity-70" />
-            )}
-          </motion.button>
-        )}
+        {mounted && button ? createPortal(button, document.body) : null}
       </>
     );
   },

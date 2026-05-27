@@ -4,22 +4,22 @@ import { motion } from "framer-motion";
 
 const flares = [
   {
-    className: "top-[8%] left-[12%] h-48 w-48 bg-amber-100/25",
+    className: "top-[8%] left-[12%] h-48 w-48 bg-lavender/30",
     duration: 9,
     delay: 0,
   },
   {
-    className: "top-[18%] right-[8%] h-56 w-56 bg-champagne/20",
+    className: "top-[18%] right-[8%] h-56 w-56 bg-gold/20",
     duration: 11,
     delay: 1.5,
   },
   {
-    className: "top-[42%] left-[55%] h-72 w-72 bg-gold/15",
+    className: "top-[42%] left-[55%] h-72 w-72 bg-purple-light/25",
     duration: 13,
     delay: 0.8,
   },
   {
-    className: "bottom-[28%] left-[18%] h-40 w-40 bg-amber-200/20",
+    className: "bottom-[28%] left-[18%] h-40 w-40 bg-blush/25",
     duration: 10,
     delay: 2,
   },

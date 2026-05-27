@@ -1,6 +1,6 @@
 # Wedding Invitation — Michael & Precious
 
-Luxury wedding invitation website built with Next.js, featuring an envelope reveal, hero section, event timeline, gallery, RSVP, background music, and magical animations.
+Luxury wedding invitation website built with Next.js, featuring a video opener, hero section, event timeline, gallery, RSVP, background music, and magical animations.
 
 ## Getting Started
 
@@ -17,6 +17,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Hero & story photos:** `public/images/`
 - **Gallery:** `public/images/gallery/`
 - **Background music:** `public/audio/wedding-music.mp3`
+- **Opening animation video:** `public/videos/opener.mp4`
 
 ## Deploy
 

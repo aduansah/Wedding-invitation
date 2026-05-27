@@ -7,9 +7,9 @@ import { AnimatedHeading } from "./AnimatedHeading";
 
 export function Location() {
   return (
-    <section id="location" className="section-padding bg-warm-white">
+    <section id="location" className="sea-section section-padding">
       <div className="mx-auto max-w-6xl">
-        <AnimatedHeading title="Find Us" subtitle="Venue Location" />
+        <AnimatedHeading title="Find Us" subtitle="Venue Location" script />
 
         <div className="grid gap-10 lg:grid-cols-5 lg:gap-12">
           <motion.div

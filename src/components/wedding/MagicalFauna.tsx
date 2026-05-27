@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { seededRandom } from "@/lib/seededRandom";
 
-export type FaunaPhase = "envelope" | "opening" | "hero";
+export type FaunaPhase = "intro" | "opening" | "hero";
 
 type ParticleKind = "butterfly" | "feather";
 
@@ -245,7 +245,7 @@ function MagicalParticle({
                     x: [0, 6, -4, 0],
                     rotate: [0, 3, -2, 0],
                   }
-                : phase === "envelope"
+                : phase === "intro"
                   ? {
                       y: [0, -8, 0, 6, 0],
                       x: [0, 5, -5, 0],
@@ -353,7 +353,7 @@ export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
   return (
     <div
       className={`pointer-events-none fixed inset-0 overflow-hidden transition-opacity duration-1000 ${
-        prominent ? "z-[201]" : "z-[8]"
+        prominent ? "z-[120]" : "z-[8]"
       }`}
       aria-hidden="true"
     >

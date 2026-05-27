@@ -13,7 +13,7 @@ const iconMap = {
 
 export function EventTimeline() {
   return (
-    <section id="events" className="section-padding relative overflow-hidden bg-cream">
+    <section id="events" className="sea-section section-padding relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03]">
         <div
           className="h-full w-full"
@@ -26,7 +26,7 @@ export function EventTimeline() {
       </div>
 
       <div className="relative mx-auto max-w-5xl">
-        <AnimatedHeading title="Celebration Timeline" subtitle="Your Invitation" />
+        <AnimatedHeading title="Celebration Timeline 🥂" subtitle="You're Invited ✨" script />
 
         <div className="relative">
           <div className="absolute top-0 left-1/2 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-champagne/40 to-transparent md:block" />
@@ -55,7 +55,7 @@ export function EventTimeline() {
                     }`}
                   >
                     <motion.div
-                      className="glass-card group rounded-2xl p-8 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl"
+                      className="glass-card group rounded-2xl border border-champagne/20 bg-white/75 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-purple/25 hover:shadow-xl"
                       whileHover={{ scale: 1.01 }}
                     >
                       <div
@@ -72,7 +72,7 @@ export function EventTimeline() {
                       </div>
 
                       <h3 className="font-[family-name:var(--font-playfair)] text-2xl text-charcoal md:text-3xl">
-                        {event.title}
+                        {event.emoji} {event.title}
                       </h3>
 
                       <div

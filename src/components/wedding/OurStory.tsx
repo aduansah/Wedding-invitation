@@ -1,74 +1,78 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { STORY_TEXT, WEDDING_IMAGES } from "@/lib/constants";
 import { AnimatedHeading } from "./AnimatedHeading";
-import { SectionDivider } from "./SectionDivider";
+
+const textReveal = {
+  hidden: { opacity: 0, y: 28, filter: "blur(8px)" },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.9,
+      delay,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  }),
+};
 
 export function OurStory() {
   return (
-    <section id="story" className="section-padding relative bg-warm-white">
-      <div className="mx-auto max-w-6xl">
-        <AnimatedHeading title="Our Story" subtitle="A Love Written in Time" />
+    <section id="story" className="sea-section section-padding relative overflow-hidden pt-20 md:pt-36">
+      <div className="relative mx-auto max-w-5xl">
+        <AnimatedHeading title="Our Story" subtitle="Forever Starts Here" script />
 
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <motion.div
-            className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-2xl"
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
+        <motion.div
+          className="relative z-10 mx-auto max-w-3xl px-2 text-center md:px-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+        >
+          <motion.p
+            custom={0.05}
+            variants={textReveal}
+            className="mx-auto max-w-xl font-[family-name:var(--font-poppins)] text-base leading-relaxed text-charcoal-soft md:text-lg"
           >
-            <Image
-              src={WEDDING_IMAGES.story}
-              alt="Michael and Precious"
-              fill
-              className="object-cover transition-transform duration-700 hover:scale-105"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            <div className="absolute right-4 bottom-4 left-4 glass-card rounded-xl p-4">
-              <p className="font-[family-name:var(--font-playfair)] text-lg text-charcoal italic">
-                &ldquo;Forever starts with a single heartbeat.&rdquo;
-              </p>
-            </div>
-          </motion.div>
+            Two hearts, one beautiful journey — and we cannot wait to celebrate this chapter
+            with the people who mean the most to us.
+          </motion.p>
+        </motion.div>
 
+        <motion.div
+          className="relative z-20 mx-auto mt-8 max-w-2xl md:mt-10"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+        >
           <motion.div
-            className="glass-card rounded-2xl p-8 md:p-12"
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.9, delay: 0.15, ease: "easeOut" }}
+            custom={0.35}
+            variants={textReveal}
+            className="glass-card rounded-2xl border border-gold/25 bg-white/75 p-8 text-center md:p-10"
           >
-            <p className="mb-6 font-[family-name:var(--font-playfair)] text-2xl leading-relaxed text-charcoal md:text-3xl">
-              {STORY_TEXT}
-            </p>
-
-            <SectionDivider variant="ornate" />
-
-            <p className="text-base leading-relaxed text-charcoal-soft md:text-lg">
-              Every chapter of our journey has been guided by faith, laughter, and
-              unwavering devotion. We are humbled and overjoyed to share this sacred
-              moment with the people who have shaped our lives with love.
-            </p>
+            <div className="mx-auto mb-6 h-px w-24 gold-line" />
 
             <motion.div
-              className="mt-8 flex items-center gap-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              custom={0.5}
+              variants={textReveal}
+              className="flex items-center justify-center gap-4"
             >
-              <div className="h-px flex-1 gold-line" />
-              <span className="font-[family-name:var(--font-playfair)] text-champagne text-xl">
+              <div className="h-px w-12 gold-line md:w-20" />
+              <span className="wedding-display-title text-3xl text-purple md:text-4xl">
                 M ♥ P
               </span>
-              <div className="h-px flex-1 gold-line" />
+              <div className="h-px w-12 gold-line md:w-20" />
             </motion.div>
+
+            <motion.p
+              custom={0.65}
+              variants={textReveal}
+              className="mt-6 font-[family-name:var(--font-poppins)] text-sm tracking-[0.2em] text-purple uppercase"
+            >
+              With love & gratitude
+            </motion.p>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

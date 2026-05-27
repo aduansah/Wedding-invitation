@@ -2,11 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import { COUPLE, WEDDING_DATES } from "@/lib/constants";
+import { CLOSING_MESSAGE, COUPLE, HASHTAG, WEDDING_DATES } from "@/lib/constants";
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-champagne/15 bg-cream px-6 py-16 md:py-20">
+    <footer className="sea-section relative border-t border-[#f0c4d0] px-6 py-10 md:py-20">
       <div className="mx-auto max-w-4xl text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -14,7 +14,17 @@ export function Footer() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <h3 className="font-[family-name:var(--font-playfair)] text-3xl text-charcoal md:text-4xl">
+          <p className="wedding-display-title text-2xl leading-relaxed text-charcoal md:text-4xl">
+            {CLOSING_MESSAGE}
+          </p>
+
+          <div className="mx-auto my-8 h-px w-24 gold-line" />
+
+          <p className="wedding-script text-3xl leading-none text-purple md:text-4xl">
+            {HASHTAG}
+          </p>
+
+          <h3 className="wedding-display-title mt-4 text-3xl text-charcoal md:text-4xl">
             {COUPLE.full}
           </h3>
 
@@ -28,10 +38,6 @@ export function Footer() {
             Made with
             <Heart className="h-4 w-4 fill-champagne text-champagne" />
             for {COUPLE.full}
-          </p>
-
-          <p className="mt-6 text-xs tracking-widest text-charcoal-soft/60 uppercase">
-            #MichaelAndPrecious2026
           </p>
         </motion.div>
       </div>

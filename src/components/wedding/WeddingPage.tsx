@@ -2,10 +2,11 @@
 
 import { useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { EnvelopeReveal } from "./EnvelopeReveal";
+import { VideoOpener } from "./VideoOpener";
 import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
 import { WeddingMusic, type WeddingMusicHandle } from "./WeddingMusic";
+import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
@@ -18,43 +19,42 @@ import { SectionDivider } from "./SectionDivider";
 
 export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
-  const [envelopeDone, setEnvelopeDone] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
   const musicRef = useRef<WeddingMusicHandle>(null);
 
-  const faunaPhase: FaunaPhase = envelopeDone
+  const faunaPhase: FaunaPhase = introDone
     ? "hero"
     : isRevealed
       ? "opening"
-      : "envelope";
+      : "intro";
 
   return (
     <>
-      <MagicalFauna phase={faunaPhase} prominent={!envelopeDone} />
+      <MagicalFauna phase={faunaPhase} prominent={!introDone} />
+      <GlobalAmbience />
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
-      <main className="relative m-0 block w-full p-0">
+      <main className="relative z-[2] m-0 block w-full p-0">
         <ScrollProgress />
         <FloatingFlorals />
 
         <Hero revealed={isRevealed} />
 
-        <SectionDivider variant="ornate" />
-
         <OurStory />
 
-        <SectionDivider variant="ornate" />
+        <SectionDivider variant="floral" />
 
         <EventTimeline />
 
-        <SectionDivider variant="ornate" />
+        <SectionDivider variant="floral" />
 
         <Location />
 
-        <SectionDivider variant="ornate" />
+        <SectionDivider variant="floral" />
 
         <Gallery />
 
-        <SectionDivider variant="ornate" />
+        <SectionDivider variant="floral" />
 
         <RSVP />
 
@@ -62,14 +62,14 @@ export function WeddingPage() {
       </main>
 
       <AnimatePresence>
-        {!envelopeDone && (
-          <EnvelopeReveal
-            key="envelope"
+        {!introDone && (
+          <VideoOpener
+            key="video-opener"
             onOpenStart={() => {
               musicRef.current?.play();
             }}
             onReveal={() => setIsRevealed(true)}
-            onFinish={() => setEnvelopeDone(true)}
+            onFinish={() => setIntroDone(true)}
           />
         )}
       </AnimatePresence>

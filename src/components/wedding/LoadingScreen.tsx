@@ -10,7 +10,7 @@ type LoadingScreenProps = {
 export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#a67449]"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-b from-[#c9a8e8] via-[#7b4ba8] to-[#5a3580]"
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
       transition={{ delay: 2.2, duration: 0.8, ease: "easeInOut" }}
