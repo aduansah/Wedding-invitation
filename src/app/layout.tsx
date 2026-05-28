@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Great_Vibes, Playfair_Display, Poppins } from "next/font/google";
+import { Great_Vibes, Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { COUPLE, HASHTAG, OPENER_VIDEO, WEDDING_DATES } from "@/lib/constants";
 import "./globals.css";
 
@@ -16,8 +16,8 @@ const greatVibes = Great_Vibes({
   display: "swap",
 });
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const bodyFont = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   display: "swap",
@@ -43,7 +43,7 @@ export default function RootLayout({
       lang="en"
       data-intro-pending=""
       suppressHydrationWarning
-      className={`${playfair.variable} ${greatVibes.variable} ${poppins.variable}`}
+      className={`${playfair.variable} ${greatVibes.variable} ${bodyFont.variable}`}
     >
       <head>
         {OPENER_VIDEO.poster ? (
@@ -55,7 +55,7 @@ export default function RootLayout({
           />
         ) : null}
       </head>
-      <body className="m-0 min-h-screen p-0 font-[family-name:var(--font-poppins)] antialiased">
+      <body className="m-0 min-h-screen p-0 font-[family-name:var(--font-sans)] antialiased">
         {children}
       </body>
     </html>

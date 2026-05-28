@@ -34,7 +34,7 @@ export function OurStory() {
           <motion.p
             custom={0.05}
             variants={textReveal}
-            className="mx-auto max-w-xl font-[family-name:var(--font-poppins)] text-base leading-relaxed text-charcoal-soft md:text-lg"
+            className="mx-auto max-w-xl font-[family-name:var(--font-sans)] text-base leading-relaxed text-charcoal-soft md:text-lg"
           >
             Two hearts, one beautiful journey — and we cannot wait to celebrate this chapter
             with the people who mean the most to us.
@@ -69,7 +69,7 @@ export function OurStory() {
             <motion.p
               custom={0.65}
               variants={textReveal}
-              className="mt-6 font-[family-name:var(--font-poppins)] text-sm tracking-[0.2em] text-purple uppercase"
+              className="mt-6 font-[family-name:var(--font-sans)] text-sm tracking-[0.2em] text-purple uppercase"
             >
               With love & gratitude
             </motion.p>

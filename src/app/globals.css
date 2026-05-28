@@ -43,7 +43,7 @@
   --color-blush: var(--blush);
   --color-lavender: var(--lavender);
   --font-serif: var(--font-playfair);
-  --font-body: var(--font-poppins);
+  --font-body: var(--font-sans);
 }
 
 * {
@@ -76,7 +76,7 @@ body {
     #ffffff 100%
   );
   color: var(--charcoal);
-  font-family: var(--font-poppins), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   overflow-x: hidden;
 }
 
@@ -171,6 +171,52 @@ body {
     transform: translateY(8px);
     opacity: 1;
   }
+}
+
+@keyframes scroll-guide-arrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes scroll-guide-line {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scaleY(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.animate-scroll-guide-arrow {
+  animation: scroll-guide-arrow 2.2s ease-in-out infinite;
+}
+
+.animate-scroll-guide-arrow-delayed {
+  animation: scroll-guide-arrow 2.2s ease-in-out infinite;
+  animation-delay: 0.35s;
+}
+
+.scroll-guide-line {
+  transform-origin: top center;
+  animation: scroll-guide-line 2.4s ease-in-out infinite;
+}
+
+.scroll-guide:hover .scroll-guide-label {
+  border-color: color-mix(in srgb, var(--gold) 75%, white 25%);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--purple-deep);
+}
+
+.scroll-guide:hover .scroll-guide-line {
+  opacity: 1;
 }
 
 .animate-float {
@@ -342,6 +388,9 @@ html:not([data-intro-pending]) .intro-boot-screen {
   .ambience-petal,
   .animate-float,
   .animate-scroll-bounce,
+  .animate-scroll-guide-arrow,
+  .animate-scroll-guide-arrow-delayed,
+  .scroll-guide-line,
   .animate-pulse-glow {
     animation: none !important;
   }

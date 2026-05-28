@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# local rsvp data (production uses Vercel Blob)
+/data
+
+.env*

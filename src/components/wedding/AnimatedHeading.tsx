@@ -20,7 +20,7 @@ export function AnimatedHeading({
   return (
     <div className={`mb-8 md:mb-16 ${alignment}`}>
       <motion.p
-        className="mb-3 font-[family-name:var(--font-poppins)] text-sm tracking-[0.25em] text-purple uppercase md:text-base"
+        className="mb-3 font-[family-name:var(--font-sans)] text-sm tracking-[0.25em] text-purple uppercase md:text-base"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}

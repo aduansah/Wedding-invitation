@@ -1,10 +1,31 @@
 "use client";
 
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { CLOSING_MESSAGE, COUPLE, HASHTAG, WEDDING_DATES } from "@/lib/constants";
 
 export function Footer() {
+  const tapCount = useRef(0);
+  const tapTimer = useRef<number | null>(null);
+
+  const handleAdminTap = () => {
+    tapCount.current += 1;
+
+    if (tapTimer.current !== null) {
+      window.clearTimeout(tapTimer.current);
+    }
+
+    tapTimer.current = window.setTimeout(() => {
+      tapCount.current = 0;
+    }, 900);
+
+    if (tapCount.current >= 3) {
+      tapCount.current = 0;
+      window.open("/admin/rsvp", "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <footer className="sea-section relative border-t border-[#f0c4d0] px-6 py-10 md:py-20">
       <div className="mx-auto max-w-4xl text-center">
@@ -20,7 +41,7 @@ export function Footer() {
 
           <div className="mx-auto my-8 h-px w-24 gold-line" />
 
-          <p className="font-[family-name:var(--font-poppins)] text-xl font-light leading-none tracking-[-0.06em] text-purple antialiased md:text-2xl">
+          <p className="font-[family-name:var(--font-sans)] text-xl font-light leading-none tracking-[-0.06em] text-purple antialiased md:text-2xl">
             {HASHTAG}
           </p>
 
@@ -34,7 +55,10 @@ export function Footer() {
 
           <div className="mx-auto my-8 h-px w-24 gold-line" />
 
-          <p className="flex items-center justify-center gap-2 text-sm text-charcoal-soft">
+          <p
+            className="flex cursor-default items-center justify-center gap-2 text-sm text-charcoal-soft select-none"
+            onClick={handleAdminTap}
+          >
             Made with
             <Heart className="h-4 w-4 fill-champagne text-champagne" />
             for {COUPLE.full}

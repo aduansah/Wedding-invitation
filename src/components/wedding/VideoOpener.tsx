@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { OPENER_VIDEO } from "@/lib/constants";
 
 type VideoOpenerProps = {
@@ -150,6 +150,53 @@ function OpenerFeatherBurst({ active }: { active: boolean }) {
         );
       })}
     </div>
+  );
+}
+
+function OpenerInstruction({ ready }: { ready: boolean }) {
+  return (
+    <motion.div
+      key="opener-instruction"
+      className="pointer-events-none absolute inset-x-0 bottom-[12%] z-[25] flex flex-col items-center gap-3 px-6 md:bottom-[14%]"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.5, delay: 0.25, ease: DISSOLVE_EASE }}
+    >
+      <motion.div
+        className="rounded-full border border-gold/55 bg-white/90 px-5 py-2.5 shadow-[0_10px_28px_rgba(74,45,110,0.16)] backdrop-blur-sm md:px-6 md:py-3"
+        animate={ready ? { scale: [1, 1.03, 1] } : undefined}
+        transition={ready ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : undefined}
+      >
+        <p className="text-center font-[family-name:var(--font-sans)] text-[11px] font-semibold tracking-[0.26em] text-purple-deep uppercase md:text-xs">
+          {ready ? "Tap to open your invitation" : "Preparing your invitation"}
+        </p>
+      </motion.div>
+
+      {ready ? (
+        <motion.div
+          className="flex flex-col items-center gap-1"
+          aria-hidden="true"
+          animate={{ y: [0, 5, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <span className="block h-8 w-[2px] rounded-full bg-gradient-to-b from-purple-deep/20 via-gold to-gold/80" />
+          <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-deep" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
+            <path
+              d="M12 8v8M8.5 12.5 12 16l3.5-3.5"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <p className="font-[family-name:var(--font-sans)] text-[10px] font-medium tracking-[0.22em] text-purple-deep/75 uppercase">
+            Tap anywhere
+          </p>
+        </motion.div>
+      ) : null}
+    </motion.div>
   );
 }
 
@@ -421,7 +468,15 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
 
       <OpenerFeatherBurst active={showBurst} />
 
-      <span className="sr-only">Open the wedding invitation</span>
+      <AnimatePresence>
+        {phase === "idle" ? <OpenerInstruction ready={frameReady} /> : null}
+      </AnimatePresence>
+
+      <span className="sr-only">
+        {frameReady
+          ? "Tap anywhere to open the wedding invitation"
+          : "Wedding invitation loading"}
+      </span>
     </motion.div>
   );
 }
