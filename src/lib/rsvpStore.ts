@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { del, get, list, put } from "@vercel/blob";
+import { del, head, list, put } from "@vercel/blob";
 import type { RsvpStoreData, RsvpSubmission } from "./rsvpTypes";
 
 const ENTRIES_PREFIX = "wedding-rsvp/entries/";
@@ -19,6 +19,10 @@ function useBlobStore() {
   }
 
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
+}
+
+function blobAccess() {
+  return process.env.BLOB_ACCESS === "private" ? "private" : "public";
 }
 
 function sortSubmissions(submissions: RsvpSubmission[]) {
@@ -51,43 +55,30 @@ async function writeLocalStore(data: RsvpStoreData) {
   await fs.writeFile(LOCAL_DATA_PATH, JSON.stringify(data, null, 2), "utf8");
 }
 
-async function readSubmissionFromBlob(pathname: string): Promise<RsvpSubmission | null> {
+async function readJsonFromUrl(url: string): Promise<unknown | null> {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) return null;
+
+  const raw = await response.text();
+  if (!raw.trim()) return null;
+
+  return JSON.parse(raw) as unknown;
+}
+
+async function readJsonFromPathname(pathname: string): Promise<unknown | null> {
   try {
-    const result = await get(pathname, {
-      access: "private",
-      useCache: false,
-    });
-
-    if (!result?.stream) return null;
-
-    const raw = await new Response(result.stream).text();
-    if (!raw.trim()) return null;
-
-    return JSON.parse(raw) as RsvpSubmission;
+    const meta = await head(pathname);
+    return readJsonFromUrl(meta.url);
   } catch (error) {
-    console.error(`Failed to read RSVP entry ${pathname}:`, error);
+    console.error(`Failed to read RSVP blob ${pathname}:`, error);
     return null;
   }
 }
 
 async function readLegacyBlobStore(): Promise<RsvpStoreData> {
-  try {
-    const result = await get(LEGACY_BLOB_PATHNAME, {
-      access: "private",
-      useCache: false,
-    });
-
-    if (!result?.stream) return emptyStore();
-
-    const raw = await new Response(result.stream).text();
-    if (!raw.trim()) return emptyStore();
-
-    const parsed = JSON.parse(raw) as RsvpStoreData;
-    if (!Array.isArray(parsed.submissions)) return emptyStore();
-    return parsed;
-  } catch {
-    return emptyStore();
-  }
+  const parsed = (await readJsonFromPathname(LEGACY_BLOB_PATHNAME)) as RsvpStoreData | null;
+  if (!parsed || !Array.isArray(parsed.submissions)) return emptyStore();
+  return parsed;
 }
 
 async function listBlobSubmissions(): Promise<RsvpSubmission[]> {
@@ -105,8 +96,14 @@ async function listBlobSubmissions(): Promise<RsvpSubmission[]> {
     });
 
     for (const blob of page.blobs) {
-      const submission = await readSubmissionFromBlob(blob.pathname);
-      if (submission) submissions.push(submission);
+      try {
+        const parsed = await readJsonFromUrl(blob.url);
+        if (parsed && typeof parsed === "object") {
+          submissions.push(parsed as RsvpSubmission);
+        }
+      } catch (error) {
+        console.error(`Failed to read RSVP entry ${blob.pathname}:`, error);
+      }
     }
 
     cursor = page.hasMore ? page.cursor : undefined;
@@ -117,7 +114,7 @@ async function listBlobSubmissions(): Promise<RsvpSubmission[]> {
 
 async function writeBlobSubmission(submission: RsvpSubmission) {
   await put(`${ENTRIES_PREFIX}${submission.id}.json`, JSON.stringify(submission), {
-    access: "private",
+    access: blobAccess(),
     addRandomSuffix: false,
     allowOverwrite: false,
     contentType: "application/json",
