@@ -157,45 +157,78 @@ function OpenerInstruction({ ready }: { ready: boolean }) {
   return (
     <motion.div
       key="opener-instruction"
-      className="pointer-events-none absolute inset-x-0 bottom-[12%] z-[25] flex flex-col items-center gap-3 px-6 md:bottom-[14%]"
-      initial={{ opacity: 0, y: 12 }}
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[25] flex flex-col items-center pb-[27%] md:pb-[28%]"
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.5, delay: 0.25, ease: DISSOLVE_EASE }}
+      exit={{ opacity: 0, y: 6 }}
+      transition={{ duration: 0.45, delay: 0.2, ease: DISSOLVE_EASE }}
     >
-      <motion.div
-        className="rounded-full border border-gold/55 bg-white/90 px-5 py-2.5 shadow-[0_10px_28px_rgba(74,45,110,0.16)] backdrop-blur-sm md:px-6 md:py-3"
-        animate={ready ? { scale: [1, 1.03, 1] } : undefined}
-        transition={ready ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" } : undefined}
-      >
-        <p className="text-center font-[family-name:var(--font-sans)] text-[11px] font-semibold tracking-[0.26em] text-purple-deep uppercase md:text-xs">
-          {ready ? "Tap to open your invitation" : "Preparing your invitation"}
-        </p>
-      </motion.div>
+      <div
+        className="absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-[#fffcf9]/80 via-[#fff8f2]/28 to-transparent"
+        aria-hidden="true"
+      />
 
-      {ready ? (
+      <motion.div
+        className="relative flex flex-col items-center gap-1"
+        animate={
+          ready
+            ? {
+                y: [0, -7, 0],
+                opacity: [0.88, 1, 0.88],
+              }
+            : undefined
+        }
+        transition={
+          ready
+            ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
+            : undefined
+        }
+      >
         <motion.div
-          className="flex flex-col items-center gap-1"
-          aria-hidden="true"
-          animate={{ y: [0, 5, 0] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+          className="rounded-full border border-white/45 bg-white/50 px-3 py-1 shadow-[0_4px_14px_rgba(74,45,110,0.1)] backdrop-blur-md md:px-3.5 md:py-1.5"
+          animate={
+            ready
+              ? {
+                  scale: [1, 1.04, 1],
+                  boxShadow: [
+                    "0 4px 14px rgba(74, 45, 110, 0.1)",
+                    "0 6px 22px rgba(212, 175, 55, 0.22)",
+                    "0 4px 14px rgba(74, 45, 110, 0.1)",
+                  ],
+                }
+              : undefined
+          }
+          transition={
+            ready
+              ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
+              : undefined
+          }
         >
-          <span className="block h-8 w-[2px] rounded-full bg-gradient-to-b from-purple-deep/20 via-gold to-gold/80" />
-          <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-deep" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.35" />
-            <path
-              d="M12 8v8M8.5 12.5 12 16l3.5-3.5"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <p className="font-[family-name:var(--font-sans)] text-[10px] font-medium tracking-[0.22em] text-purple-deep/75 uppercase">
-            Tap anywhere
+          <p className="text-center font-[family-name:var(--font-sans)] text-[9px] font-medium tracking-[0.18em] text-purple-deep/85 uppercase md:text-[10px]">
+            {ready ? "Tap to open" : "Preparing…"}
           </p>
         </motion.div>
-      ) : null}
+
+        {ready ? (
+          <motion.div
+            className="flex flex-col items-center"
+            aria-hidden="true"
+            animate={{ y: [0, 4, 0], opacity: [0.55, 0.9, 0.55] }}
+            transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <span className="block h-4 w-px rounded-full bg-gradient-to-b from-transparent via-gold/60 to-gold/35" />
+            <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 text-purple-deep/55" fill="none">
+              <path
+                d="M12 7v8M8.5 13.5 12 17l3.5-3.5"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.div>
+        ) : null}
+      </motion.div>
     </motion.div>
   );
 }
@@ -421,7 +454,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
       }}
     >
       <motion.div
-        className="absolute inset-0 z-10"
+        className="absolute right-0 bottom-0 z-10 h-full w-full"
         initial={{ opacity: 1, scale: 1 }}
         animate={{
           opacity: phase === "exit" ? 0 : 1,
@@ -450,10 +483,13 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
         className="pointer-events-none absolute inset-0 z-20"
         style={{
           background:
-            "radial-gradient(circle at 50% 52%, rgba(244, 236, 220, 0.55) 0%, rgba(212, 175, 55, 0.12) 38%, transparent 72%)",
+            "linear-gradient(to top, rgba(255, 252, 249, 0.42) 0%, rgba(255, 252, 249, 0.08) 18%, transparent 42%), radial-gradient(circle at 50% 52%, rgba(244, 236, 220, 0.35) 0%, rgba(212, 175, 55, 0.08) 38%, transparent 72%)",
         }}
         initial={{ opacity: 0 }}
-        animate={{ opacity: phase === "exit" ? [0, 0.42, 0] : 0 }}
+        animate={{
+          opacity:
+            phase === "exit" ? [0, 0.42, 0] : phase === "idle" ? 0.55 : 0,
+        }}
         transition={{ duration: 1.05, ease: DISSOLVE_EASE, times: [0, 0.38, 1] }}
         aria-hidden="true"
       />

@@ -157,13 +157,13 @@ function RsvpForm() {
 
 function RsvpContactCards({ highlight }: { highlight: boolean }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2">
+    <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2 sm:gap-4">
       {RSVP_CONTACTS.map((contact, index) => (
         <motion.div
           key={contact.tel}
-          className={`glass-card group rounded-2xl border bg-white/80 p-6 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl md:p-8 ${
+          className={`glass-card group rounded-xl border bg-white/80 p-4 transition-all duration-500 hover:-translate-y-0.5 hover:shadow-lg md:p-5 ${
             highlight
-              ? "animate-pulse border-purple/50 ring-2 ring-gold/70 ring-offset-2 ring-offset-[#fffcf9]"
+              ? "animate-pulse border-purple/50 ring-2 ring-gold/70 ring-offset-1 ring-offset-[#fffcf9]"
               : "border-gold/20"
           }`}
           initial={{ opacity: 0, y: 30 }}
@@ -171,17 +171,17 @@ function RsvpContactCards({ highlight }: { highlight: boolean }) {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.6, delay: index * 0.1 }}
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#f8dde4] text-[#c87d95] transition-colors group-hover:bg-[#e8a0b4] group-hover:text-white">
-            <Phone className="h-5 w-5" />
+          <div className="mb-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-[#f8dde4] text-[#c87d95] transition-colors group-hover:bg-[#e8a0b4] group-hover:text-white">
+            <Phone className="h-4 w-4" />
           </div>
 
-          <p className="text-xs tracking-[0.25em] text-charcoal-soft uppercase">RSVP</p>
+          <p className="text-[10px] tracking-[0.22em] text-charcoal-soft uppercase">RSVP</p>
 
           <a
             href={`tel:${contact.tel}`}
-            className={`mt-2 block font-[family-name:var(--font-playfair)] text-2xl transition-colors md:text-3xl ${
+            className={`mt-1 block font-[family-name:var(--font-playfair)] text-lg transition-colors md:text-xl ${
               highlight
-                ? "text-purple underline decoration-gold decoration-2 underline-offset-4"
+                ? "text-purple underline decoration-gold decoration-2 underline-offset-3"
                 : "text-charcoal"
             }`}
           >
@@ -190,13 +190,13 @@ function RsvpContactCards({ highlight }: { highlight: boolean }) {
 
           <a
             href={`tel:${contact.tel}`}
-            className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium tracking-wide uppercase transition-all ${
+            className={`mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2 text-[11px] font-medium tracking-[0.14em] uppercase transition-all md:text-xs ${
               highlight
-                ? "animate-pulse border-2 border-purple bg-purple text-white shadow-[0_0_24px_rgba(123,75,168,0.45)]"
+                ? "animate-pulse border-2 border-purple bg-purple text-white shadow-[0_0_18px_rgba(123,75,168,0.35)]"
                 : "border border-gold/30 bg-transparent text-purple hover:border-purple hover:bg-purple hover:text-white"
             }`}
           >
-            <Phone className="h-4 w-4" />
+            <Phone className="h-3.5 w-3.5" />
             Call Now
           </a>
         </motion.div>
