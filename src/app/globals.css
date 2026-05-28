@@ -230,7 +230,7 @@ html[data-intro-pending] .wedding-main {
   position: fixed;
   inset: 0;
   z-index: 240;
-  background: var(--sea-white);
+  background: var(--sea-white) url("/images/envelope-closed.png") center / cover no-repeat;
   transition: opacity 0.35s ease;
 }
 

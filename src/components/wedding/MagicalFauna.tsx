@@ -364,13 +364,13 @@ type MagicalFaunaProps = {
 };
 
 export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
-  const particleCount = prominent ? 12 : 9;
+  const particleCount = prominent ? 6 : 9;
   const particles = useMemo(() => generateParticles(particleCount), [particleCount]);
   const reducedMotion = useReducedMotion() ?? false;
   const softScroll = !prominent;
   const impulse = useFaunaInteraction({
-    enabled: !reducedMotion,
-    scrollOnly: softScroll,
+    enabled: !reducedMotion && !prominent,
+    scrollOnly: true,
     soft: softScroll,
   });
 

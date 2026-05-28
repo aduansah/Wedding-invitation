@@ -9,6 +9,7 @@ import { WeddingMusic, type WeddingMusicHandle } from "./WeddingMusic";
 import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
 import { WEDDING_IMAGES } from "@/lib/constants";
+import { prefetchOpenerPlaybackAssets } from "@/lib/prefetchAssets";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
 import { SectionDivider } from "./SectionDivider";
@@ -73,59 +74,67 @@ export function WeddingPage() {
   return (
     <>
       <MagicalFauna phase={faunaPhase} prominent={!isRevealed} />
-      {isRevealed && <GlobalAmbience />}
+      {introDone && <GlobalAmbience />}
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
-      <main
-        className="wedding-main relative z-[2] m-0 block w-full p-0"
-        aria-hidden={!isRevealed}
-      >
-        <ScrollProgress />
-        {isRevealed && <FloatingFlorals />}
+      {isRevealed ? (
+        <main
+          className="wedding-main relative z-[2] m-0 block w-full p-0"
+          aria-hidden={false}
+        >
+          <ScrollProgress />
+          {introDone && <FloatingFlorals />}
 
-        <Hero revealed={isRevealed} scrollReady={isRevealed} />
+          <Hero revealed scrollReady={introDone} />
 
-        <div ref={storyAscentRef} className="relative overflow-visible">
-          <OurStory />
+          {introDone ? (
+            <>
+              <div ref={storyAscentRef} className="relative overflow-visible">
+                <OurStory />
 
-          <SectionDivider variant="floral" />
+                <SectionDivider variant="floral" />
 
-          <div className="relative z-30 h-[min(24vh,188px)] overflow-visible md:h-[min(28vh,220px)]">
-            <StoryAscentImage
-              containerRef={storyAscentRef}
-              src={WEDDING_IMAGES.heroPhoto}
-              alt="Michael and Precious"
-              variant="storyCard"
-            />
-          </div>
-        </div>
+                <div className="relative z-30 h-[min(24vh,188px)] overflow-visible md:h-[min(28vh,220px)]">
+                  <StoryAscentImage
+                    containerRef={storyAscentRef}
+                    src={WEDDING_IMAGES.heroPhoto}
+                    alt="Michael and Precious"
+                    variant="storyCard"
+                    active
+                  />
+                </div>
+              </div>
 
-        <EventTimeline />
+              <EventTimeline />
 
-        <SectionDivider variant="floral" />
+              <SectionDivider variant="floral" />
 
-        <Location />
+              <Location />
 
-        <SectionDivider variant="floral" />
+              <SectionDivider variant="floral" />
 
-        <Gallery />
+              <Gallery />
 
-        <SectionDivider variant="floral" />
+              <SectionDivider variant="floral" />
 
-        <RSVP />
+              <RSVP />
 
-        <Footer />
-      </main>
+              <Footer />
+            </>
+          ) : null}
+        </main>
+      ) : null}
 
       {!introDone && (
         <VideoOpener
           key="video-opener"
-          onOpenStart={() => {
-            musicRef.current?.play();
-          }}
+          onOpenStart={prefetchOpenerPlaybackAssets}
           onReveal={() => {
             setIsRevealed(true);
             document.documentElement.removeAttribute("data-intro-pending");
+            window.requestAnimationFrame(() => {
+              musicRef.current?.play();
+            });
           }}
           onFinish={() => setIntroDone(true)}
         />

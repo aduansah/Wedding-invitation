@@ -118,6 +118,7 @@ export function EventTimeline() {
                       src={WEDDING_IMAGES.story2}
                       alt="Michael and Precious at reception"
                       variant="compact"
+                      active
                     />
                   )}
 

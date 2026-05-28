@@ -16,6 +16,7 @@ const REVEAL_LEAD_SECONDS = 0.65;
 const EXIT_MS = 780;
 const VIDEO_DISSOLVE_S = 0.72;
 const OVERLAY_FADE_DELAY_S = 0.12;
+const FRAME_READY_TIMEOUT_MS = 3500;
 const DISSOLVE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const OPENER_CONFETTI = [
@@ -219,7 +220,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
 
     const readyTimeout = window.setTimeout(() => {
       setFrameReady(true);
-    }, 4500);
+    }, FRAME_READY_TIMEOUT_MS);
 
     video.addEventListener("canplay", primeFirstFrame);
     video.addEventListener("loadeddata", primeFirstFrame);
@@ -237,6 +238,11 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     };
   }, []);
 
+  useEffect(() => {
+    if (!frameReady) return;
+    void import("canvas-confetti");
+  }, [frameReady]);
+
   const beginRevealTransition = useCallback(() => {
     if (hasTransitioned.current) return;
     hasTransitioned.current = true;
@@ -247,7 +253,9 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     }
 
     setShowBurst(true);
-    fireOpenerConfetti();
+    requestAnimationFrame(() => {
+      fireOpenerConfetti();
+    });
     setPhase("exit");
     onReveal();
     window.scrollTo(0, 0);
@@ -264,23 +272,28 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     if (hasTriggered.current || phaseRef.current !== "idle") return;
     hasTriggered.current = true;
     phaseRef.current = "playing";
-    onOpenStart?.();
     dismissBootScreen();
     setPhase("playing");
 
     const video = videoRef.current;
     if (!video || videoFailed) {
+      onOpenStart?.();
       beginRevealTransition();
       return;
     }
 
     const tryPlay = async () => {
+      if (video.preload !== "auto") {
+        video.preload = "auto";
+        video.load();
+      }
       video.currentTime = 0;
       await video.play();
     };
 
     try {
       await tryPlay();
+      onOpenStart?.();
     } catch {
       try {
         video.load();
@@ -296,14 +309,20 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
   }, [startOpener]);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phaseRef.current !== "idle" || hasTriggered.current) return;
+    if (phaseRef.current !== "idle" || hasTriggered.current || !frameReady) return;
+
+    const video = videoRef.current;
+    if (video && video.preload !== "auto") {
+      video.preload = "auto";
+      video.load();
+    }
 
     touchStart.current = { x: event.clientX, y: event.clientY };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
   const handlePointerUp = () => {
-    if (phaseRef.current !== "idle" || !touchStart.current || hasTriggered.current) return;
+    if (phaseRef.current !== "idle" || !touchStart.current || hasTriggered.current || !frameReady) return;
 
     touchStart.current = null;
     openInvitation();
@@ -358,7 +377,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          openInvitation();
+          if (frameReady) openInvitation();
         }
       }}
     >
@@ -378,7 +397,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
           poster={OPENER_VIDEO.poster}
           playsInline
           muted={OPENER_VIDEO.muted}
-          preload="auto"
+          preload="metadata"
           onError={() => {
             setVideoFailed(true);
             setFrameReady(true);

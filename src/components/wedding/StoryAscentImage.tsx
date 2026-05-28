@@ -54,7 +54,7 @@ export function StoryAscentImage({
   src = WEDDING_IMAGES.story,
   alt = "Michael and Precious",
   variant = "hero",
-  active = true,
+  active = false,
 }: StoryAscentImageProps) {
   const reducedMotion = useReducedMotion() ?? false;
   const config = variantConfig[variant];
