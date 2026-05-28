@@ -1,19 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { VideoOpener } from "./VideoOpener";
 import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
 import { WeddingMusic } from "./WeddingMusic";
 import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
-import { WEDDING_IMAGES } from "@/lib/constants";
 import { prefetchOpenerPlaybackAssets } from "@/lib/prefetchAssets";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
 import { SectionDivider } from "./SectionDivider";
-import { StoryAscentImage } from "./StoryAscentImage";
 
 const EventTimeline = dynamic(
   () => import("./EventTimeline").then((m) => ({ default: m.EventTimeline })),
@@ -39,7 +37,6 @@ const Footer = dynamic(
 export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [introDone, setIntroDone] = useState(false);
-  const storyAscentRef = useRef<HTMLDivElement>(null);
 
   const faunaPhase: FaunaPhase = isRevealed ? "hero" : "intro";
 
@@ -88,21 +85,9 @@ export function WeddingPage() {
 
           {introDone ? (
             <>
-              <div ref={storyAscentRef} className="relative overflow-visible">
-                <OurStory />
+              <OurStory />
 
-                <SectionDivider variant="floral" />
-
-                <div className="relative z-30 h-[min(24vh,188px)] overflow-visible md:h-[min(28vh,220px)]">
-                  <StoryAscentImage
-                    containerRef={storyAscentRef}
-                    src={WEDDING_IMAGES.story}
-                    alt="Michael and Precious"
-                    variant="storyCard"
-                    active
-                  />
-                </div>
-              </div>
+              <SectionDivider variant="floral" />
 
               <EventTimeline />
 

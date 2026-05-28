@@ -72,8 +72,8 @@ export const RSVP_CONTACTS = [
 /** Hero background + story photos + section divider */
 export const WEDDING_IMAGES = {
   heroBackground: "/images/hero-background.png",
-  heroPhoto: "/images/hero.png?v=20260528",
-  story: "/images/story.png",
+  heroPhoto: "/images/story.png",
+  story: "/images/our-story.jpeg",
   story2: "/images/story2.png",
   sectionBorder: "/images/boarder.png",
 } as const;

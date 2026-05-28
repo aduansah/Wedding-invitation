@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
+import { WEDDING_IMAGES } from "@/lib/constants";
 import { AnimatedHeading } from "./AnimatedHeading";
 
 const textReveal = {
@@ -26,6 +28,25 @@ export function OurStory() {
         <AnimatedHeading title="Our Story" subtitle="Forever Starts Here" script />
 
         <motion.div
+          className="relative z-10 mx-auto mt-8 max-w-sm px-2 sm:max-w-md md:mt-10 md:max-w-lg"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-[0_20px_44px_-14px_rgba(90,53,128,0.28)] ring-1 ring-white/60">
+            <Image
+              src={WEDDING_IMAGES.story}
+              alt="Michael and Precious"
+              fill
+              className="object-cover object-[center_14%]"
+              sizes="(max-width: 640px) 88vw, (max-width: 768px) 420px, 512px"
+              priority={false}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
           className="relative z-10 mx-auto max-w-3xl px-2 text-center md:px-8"
           initial="hidden"
           whileInView="visible"
@@ -34,7 +55,7 @@ export function OurStory() {
           <motion.p
             custom={0.05}
             variants={textReveal}
-            className="mx-auto max-w-xl font-[family-name:var(--font-sans)] text-base leading-relaxed text-charcoal-soft md:text-lg"
+            className="mx-auto mt-8 max-w-xl font-[family-name:var(--font-sans)] text-base leading-relaxed text-charcoal-soft md:mt-10 md:text-lg"
           >
             Two hearts, one beautiful journey — and we cannot wait to celebrate this chapter
             with the people who mean the most to us.
