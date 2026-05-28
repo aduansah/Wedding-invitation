@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { addRsvpSubmission } from "@/lib/rsvpStore";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 function sanitizeName(value: unknown) {
   if (typeof value !== "string") return "";
   return value.trim().replace(/\s+/g, " ").slice(0, 80);
@@ -28,9 +31,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, submission });
   } catch (error) {
     console.error("RSVP save failed:", error);
-    return NextResponse.json(
-      { error: "Unable to save RSVP right now. Please try again." },
-      { status: 500 },
-    );
+
+    const message =
+      error instanceof Error && error.message.includes("not configured")
+        ? "RSVP storage is not configured yet. Please try again shortly."
+        : "Unable to save RSVP right now. Please try again.";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

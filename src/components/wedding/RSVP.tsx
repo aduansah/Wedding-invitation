@@ -62,23 +62,42 @@ function RsvpForm({ highlighted }: { highlighted: boolean }) {
     setLoading(true);
     setError("");
 
+    const trimmedFirstName = firstName.trim();
+    const trimmedLastName = lastName.trim();
+
+    if (!trimmedFirstName || !trimmedLastName) {
+      setError("First name and last name are required.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName }),
+        body: JSON.stringify({
+          firstName: trimmedFirstName,
+          lastName: trimmedLastName,
+        }),
       });
 
-      const data = (await response.json()) as { error?: string };
+      let data: { error?: string } = {};
+      try {
+        data = (await response.json()) as { error?: string };
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
-        setError(data.error || "Unable to submit RSVP.");
+        setError(data.error || "Unable to save RSVP right now. Please try again.");
         return;
       }
 
+      setFirstName(trimmedFirstName);
+      setLastName(trimmedLastName);
       setDone(true);
     } catch {
-      setError("Unable to submit RSVP. Please try again.");
+      setError("Unable to save RSVP right now. Please try again.");
     } finally {
       setLoading(false);
     }

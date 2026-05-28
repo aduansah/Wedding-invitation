@@ -1,12 +1,37 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { get, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 import type { RsvpStoreData, RsvpSubmission } from "./rsvpTypes";
 
-const BLOB_PATHNAME = "wedding-rsvp/submissions.json";
+const ENTRIES_PREFIX = "wedding-rsvp/entries/";
+const LEGACY_BLOB_PATHNAME = "wedding-rsvp/submissions.json";
 const LOCAL_DATA_PATH = path.join(process.cwd(), "data", "rsvps.json");
 
 const emptyStore = (): RsvpStoreData => ({ submissions: [] });
+
+function useBlobStore() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+function assertProductionStorage() {
+  if (process.env.NODE_ENV === "production" && !useBlobStore()) {
+    throw new Error("RSVP storage is not configured for this deployment.");
+  }
+}
+
+function sortSubmissions(submissions: RsvpSubmission[]) {
+  return [...submissions].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+function dedupeSubmissions(submissions: RsvpSubmission[]) {
+  const byId = new Map<string, RsvpSubmission>();
+  for (const submission of submissions) {
+    byId.set(submission.id, submission);
+  }
+  return sortSubmissions([...byId.values()]);
+}
 
 async function readLocalStore(): Promise<RsvpStoreData> {
   try {
@@ -24,9 +49,28 @@ async function writeLocalStore(data: RsvpStoreData) {
   await fs.writeFile(LOCAL_DATA_PATH, JSON.stringify(data, null, 2), "utf8");
 }
 
-async function readBlobStore(): Promise<RsvpStoreData> {
+async function readSubmissionFromBlob(pathname: string): Promise<RsvpSubmission | null> {
   try {
-    const result = await get(BLOB_PATHNAME, {
+    const result = await get(pathname, {
+      access: "private",
+      useCache: false,
+    });
+
+    if (!result?.stream) return null;
+
+    const raw = await new Response(result.stream).text();
+    if (!raw.trim()) return null;
+
+    return JSON.parse(raw) as RsvpSubmission;
+  } catch (error) {
+    console.error(`Failed to read RSVP entry ${pathname}:`, error);
+    return null;
+  }
+}
+
+async function readLegacyBlobStore(): Promise<RsvpStoreData> {
+  try {
+    const result = await get(LEGACY_BLOB_PATHNAME, {
       access: "private",
       useCache: false,
     });
@@ -39,51 +83,86 @@ async function readBlobStore(): Promise<RsvpStoreData> {
     const parsed = JSON.parse(raw) as RsvpStoreData;
     if (!Array.isArray(parsed.submissions)) return emptyStore();
     return parsed;
-  } catch (error) {
-    console.error("Failed to read RSVP blob store:", error);
+  } catch {
     return emptyStore();
   }
 }
 
-async function writeBlobStore(data: RsvpStoreData) {
-  await put(BLOB_PATHNAME, JSON.stringify(data), {
+async function listBlobSubmissions(): Promise<RsvpSubmission[]> {
+  const submissions: RsvpSubmission[] = [];
+  const legacy = await readLegacyBlobStore();
+  submissions.push(...legacy.submissions);
+
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({
+      prefix: ENTRIES_PREFIX,
+      limit: 1000,
+      cursor,
+    });
+
+    for (const blob of page.blobs) {
+      const submission = await readSubmissionFromBlob(blob.pathname);
+      if (submission) submissions.push(submission);
+    }
+
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+
+  return dedupeSubmissions(submissions);
+}
+
+async function writeBlobSubmission(submission: RsvpSubmission) {
+  await put(`${ENTRIES_PREFIX}${submission.id}.json`, JSON.stringify(submission), {
     access: "private",
     addRandomSuffix: false,
-    allowOverwrite: true,
+    allowOverwrite: false,
     contentType: "application/json",
   });
 }
 
-function useBlobStore() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
-}
-
-async function persistStore(data: RsvpStoreData) {
+async function clearBlobSubmissions() {
   try {
-    if (useBlobStore()) {
-      await writeBlobStore(data);
-      return;
+    await del(LEGACY_BLOB_PATHNAME);
+  } catch {
+    // Legacy file may not exist.
+  }
+
+  let cursor: string | undefined;
+
+  do {
+    const page = await list({
+      prefix: ENTRIES_PREFIX,
+      limit: 1000,
+      cursor,
+    });
+
+    if (page.blobs.length > 0) {
+      await del(page.blobs.map((blob) => blob.pathname));
     }
 
-    await writeLocalStore(data);
-  } catch (error) {
-    console.error("Failed to persist RSVP store:", error);
-    throw error;
-  }
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
 }
 
 export async function listRsvpSubmissions(): Promise<RsvpSubmission[]> {
-  const store = useBlobStore() ? await readBlobStore() : await readLocalStore();
-  return [...store.submissions].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+  assertProductionStorage();
+
+  if (useBlobStore()) {
+    return listBlobSubmissions();
+  }
+
+  const store = await readLocalStore();
+  return sortSubmissions(store.submissions);
 }
 
 export async function addRsvpSubmission(
   firstName: string,
   lastName: string,
 ): Promise<RsvpSubmission> {
-  const store = useBlobStore() ? await readBlobStore() : await readLocalStore();
+  assertProductionStorage();
+
   const submission: RsvpSubmission = {
     id: crypto.randomUUID(),
     firstName,
@@ -91,12 +170,24 @@ export async function addRsvpSubmission(
     createdAt: new Date().toISOString(),
   };
 
-  store.submissions.push(submission);
-  await persistStore(store);
+  if (useBlobStore()) {
+    await writeBlobSubmission(submission);
+    return submission;
+  }
 
+  const store = await readLocalStore();
+  store.submissions.push(submission);
+  await writeLocalStore(store);
   return submission;
 }
 
 export async function clearRsvpSubmissions(): Promise<void> {
-  await persistStore(emptyStore());
+  assertProductionStorage();
+
+  if (useBlobStore()) {
+    await clearBlobSubmissions();
+    return;
+  }
+
+  await writeLocalStore(emptyStore());
 }
