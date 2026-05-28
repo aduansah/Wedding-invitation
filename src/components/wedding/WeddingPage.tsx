@@ -45,10 +45,30 @@ export function WeddingPage() {
       : "intro";
 
   useEffect(() => {
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (!introDone) return;
     document.documentElement.removeAttribute("data-intro-pending");
     document.getElementById("intro-boot-screen")?.remove();
+
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "auto";
+      }
+    });
   }, [introDone]);
+
+  useEffect(() => {
+    if (!isRevealed) return;
+    window.scrollTo(0, 0);
+  }, [isRevealed]);
 
   return (
     <>
@@ -63,7 +83,7 @@ export function WeddingPage() {
         <ScrollProgress />
         {introDone && <FloatingFlorals />}
 
-        <Hero revealed={isRevealed} />
+        <Hero revealed={isRevealed} scrollReady={introDone} />
 
         <OurStory />
 

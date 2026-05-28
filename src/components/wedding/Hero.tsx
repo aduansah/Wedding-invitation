@@ -18,12 +18,20 @@ const countdownItems = [
   { label: "Seconds", key: "seconds" as const },
 ];
 
-export function Hero({ revealed = false }: { revealed?: boolean }) {
+export function Hero({
+  revealed = false,
+  scrollReady = false,
+}: {
+  revealed?: boolean;
+  scrollReady?: boolean;
+}) {
   const heroRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const countdown = useCountdown(WEDDING_DATES.countdown);
 
   useEffect(() => {
+    if (!scrollReady) return;
+
     const ctx = gsap.context(() => {
       if (bgRef.current) {
         gsap.to(bgRef.current, {
@@ -40,8 +48,10 @@ export function Hero({ revealed = false }: { revealed?: boolean }) {
       }
     }, heroRef);
 
+    ScrollTrigger.refresh();
+
     return () => ctx.revert();
-  }, []);
+  }, [scrollReady]);
 
   return (
     <section
@@ -133,7 +143,7 @@ export function Hero({ revealed = false }: { revealed?: boolean }) {
         )}
       </div>
 
-      <StoryAscentImage containerRef={heroRef} />
+      <StoryAscentImage containerRef={heroRef} active={scrollReady} />
 
       <motion.a
         href="#story"

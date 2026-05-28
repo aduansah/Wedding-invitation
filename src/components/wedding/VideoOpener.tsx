@@ -132,10 +132,17 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
 
   useEffect(() => {
     document.getElementById("intro-boot-screen")?.remove();
+    window.scrollTo(0, 0);
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     document.documentElement.style.background = "var(--sea-white)";
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
       document.documentElement.style.background = "";
     };
   }, []);
@@ -173,10 +180,13 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     setShowBurst(true);
     fireOpenerConfetti();
     setPhase("exit");
+    window.scrollTo(0, 0);
 
     window.setTimeout(() => {
       onFinish?.();
+      window.scrollTo(0, 0);
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }, EXIT_MS);
   }, [onFinish, onReveal]);
 
