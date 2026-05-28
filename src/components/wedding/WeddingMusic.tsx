@@ -17,6 +17,7 @@ type WeddingMusicProps = {
 export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
   function WeddingMusic({ revealed = false }, ref) {
     const audioRef = useRef<HTMLAudioElement>(null);
+    const isPlayingRef = useRef(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasAudio, setHasAudio] = useState(true);
     const [mounted, setMounted] = useState(false);
@@ -29,23 +30,28 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
       const audio = audioRef.current;
       if (!audio || !hasAudio) return;
 
-      if (!audio.paused && isPlaying) return;
+      if (!audio.paused && isPlayingRef.current) return;
 
       const playPromise = audio.play();
       if (playPromise === undefined) {
+        isPlayingRef.current = true;
         setIsPlaying(true);
         return;
       }
 
       playPromise
-        .then(() => setIsPlaying(true))
+        .then(() => {
+          isPlayingRef.current = true;
+          setIsPlaying(true);
+        })
         .catch(() => setHasAudio(false));
-    }, [hasAudio, isPlaying]);
+    }, [hasAudio]);
 
     const pause = useCallback(() => {
       const audio = audioRef.current;
       if (!audio) return;
       audio.pause();
+      isPlayingRef.current = false;
       setIsPlaying(false);
     }, []);
 
@@ -56,8 +62,14 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
       if (!audio) return;
 
       const handleError = () => setHasAudio(false);
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
+      const handlePlay = () => {
+        isPlayingRef.current = true;
+        setIsPlaying(true);
+      };
+      const handlePause = () => {
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+      };
 
       audio.addEventListener("error", handleError);
       audio.addEventListener("play", handlePlay);

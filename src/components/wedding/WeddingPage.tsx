@@ -8,9 +8,11 @@ import { ScrollProgress } from "./ScrollProgress";
 import { WeddingMusic, type WeddingMusicHandle } from "./WeddingMusic";
 import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
+import { WEDDING_IMAGES } from "@/lib/constants";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
 import { SectionDivider } from "./SectionDivider";
+import { StoryAscentImage } from "./StoryAscentImage";
 
 const EventTimeline = dynamic(
   () => import("./EventTimeline").then((m) => ({ default: m.EventTimeline })),
@@ -37,6 +39,7 @@ export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [introDone, setIntroDone] = useState(false);
   const musicRef = useRef<WeddingMusicHandle>(null);
+  const storyAscentRef = useRef<HTMLDivElement>(null);
 
   const faunaPhase: FaunaPhase = introDone
     ? "hero"
@@ -54,6 +57,7 @@ export function WeddingPage() {
   useEffect(() => {
     if (!introDone) return;
     document.documentElement.removeAttribute("data-intro-pending");
+    document.documentElement.removeAttribute("data-opener-ready");
     document.getElementById("intro-boot-screen")?.remove();
 
     window.scrollTo(0, 0);
@@ -77,7 +81,7 @@ export function WeddingPage() {
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
       <main
-        className={`wedding-main relative z-[2] m-0 block w-full p-0${introDone ? "" : " invisible pointer-events-none"}`}
+        className="wedding-main relative z-[2] m-0 block w-full p-0"
         aria-hidden={!introDone}
       >
         <ScrollProgress />
@@ -85,9 +89,20 @@ export function WeddingPage() {
 
         <Hero revealed={isRevealed} scrollReady={introDone} />
 
-        <OurStory />
+        <div ref={storyAscentRef} className="relative overflow-visible">
+          <OurStory />
 
-        <SectionDivider variant="floral" />
+          <SectionDivider variant="floral" />
+
+          <div className="relative z-30 h-[min(24vh,188px)] overflow-visible md:h-[min(28vh,220px)]">
+            <StoryAscentImage
+              containerRef={storyAscentRef}
+              src={WEDDING_IMAGES.heroPhoto}
+              alt="Michael and Precious"
+              variant="storyCard"
+            />
+          </div>
+        </div>
 
         <EventTimeline />
 

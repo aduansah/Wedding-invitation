@@ -231,6 +231,12 @@ html[data-intro-pending] .wedding-main {
   inset: 0;
   z-index: 240;
   background: var(--sea-white);
+  transition: opacity 0.35s ease;
+}
+
+html[data-intro-pending][data-opener-ready] .intro-boot-screen {
+  opacity: 0;
+  pointer-events: none;
 }
 
 html:not([data-intro-pending]) .intro-boot-screen {

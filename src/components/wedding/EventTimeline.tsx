@@ -25,7 +25,7 @@ export function EventTimeline() {
   const receptionRef = useRef<HTMLDivElement>(null);
 
   return (
-    <section id="events" className="sea-section section-padding relative overflow-visible">
+    <section id="events" className="sea-section section-padding relative z-10 overflow-visible pt-6 md:pt-8">
       <div className="absolute inset-0 opacity-[0.03]">
         <div
           className="h-full w-full"

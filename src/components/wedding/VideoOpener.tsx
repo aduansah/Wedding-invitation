@@ -125,13 +125,13 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
   const [phase, setPhase] = useState<OpenerPhase>("idle");
   const [showBurst, setShowBurst] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [frameReady, setFrameReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const hasTriggered = useRef(false);
   const hasTransitioned = useRef(false);
 
   useEffect(() => {
-    document.getElementById("intro-boot-screen")?.remove();
     window.scrollTo(0, 0);
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
@@ -144,26 +144,50 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
       document.body.style.overflow = "";
       document.documentElement.style.overflow = "";
       document.documentElement.style.background = "";
+      document.documentElement.removeAttribute("data-opener-ready");
     };
   }, []);
+
+  useEffect(() => {
+    if (!frameReady) return;
+    document.documentElement.setAttribute("data-opener-ready", "");
+  }, [frameReady]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const showFirstFrame = () => {
-      video.currentTime = 0;
-      video.pause();
+      const revealFrame = () => {
+        video.pause();
+        setFrameReady(true);
+      };
+
+      if (video.currentTime > 0.001) {
+        revealFrame();
+        return;
+      }
+
+      const handleSeeked = () => {
+        video.removeEventListener("seeked", handleSeeked);
+        revealFrame();
+      };
+
+      video.addEventListener("seeked", handleSeeked);
+      video.currentTime = 0.001;
     };
 
-    video.load();
-    video.addEventListener("loadeddata", showFirstFrame);
+    const handleLoadedData = () => {
+      showFirstFrame();
+    };
+
+    video.addEventListener("loadeddata", handleLoadedData);
     if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
       showFirstFrame();
     }
 
     return () => {
-      video.removeEventListener("loadeddata", showFirstFrame);
+      video.removeEventListener("loadeddata", handleLoadedData);
     };
   }, []);
 
@@ -193,7 +217,6 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
   const startOpener = useCallback(async () => {
     if (hasTriggered.current || phase !== "idle") return;
     hasTriggered.current = true;
-    onOpenStart?.();
     setPhase("playing");
 
     const video = videoRef.current;
@@ -208,7 +231,41 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     } catch {
       beginRevealTransition();
     }
-  }, [beginRevealTransition, onOpenStart, phase, videoFailed]);
+  }, [beginRevealTransition, phase, videoFailed]);
+
+  const tryStartFromGesture = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (phase !== "idle" || !touchStart.current) return;
+
+      const deltaX = event.clientX - touchStart.current.x;
+      const deltaY = event.clientY - touchStart.current.y;
+      touchStart.current = null;
+
+      const isSwipe =
+        Math.abs(deltaY) >= SWIPE_THRESHOLD || Math.abs(deltaX) >= SWIPE_THRESHOLD;
+
+      if (isSwipe || Math.hypot(deltaX, deltaY) < 12) {
+        void startOpener();
+      }
+    },
+    [phase, startOpener],
+  );
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (phase !== "idle") return;
+
+    touchStart.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    onOpenStart?.();
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    tryStartFromGesture(event);
+  };
+
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    tryStartFromGesture(event);
+  };
 
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
@@ -224,37 +281,20 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     beginRevealTransition();
   }, [beginRevealTransition]);
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    touchStart.current = { x: event.clientX, y: event.clientY };
-  };
-
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phase !== "idle" || !touchStart.current) return;
-
-    const deltaX = event.clientX - touchStart.current.x;
-    const deltaY = event.clientY - touchStart.current.y;
-    touchStart.current = null;
-
-    const isSwipe =
-      Math.abs(deltaY) >= SWIPE_THRESHOLD || Math.abs(deltaX) >= SWIPE_THRESHOLD;
-
-    if (isSwipe || Math.hypot(deltaX, deltaY) < 12) {
-      void startOpener();
-    }
-  };
-
   return (
     <div
       className="video-opener fixed inset-0 z-[250] overflow-hidden"
       style={{ pointerEvents: phase === "exit" ? "none" : "auto" }}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       role="button"
       tabIndex={0}
-      aria-label="Tap or swipe to open the wedding invitation"
+      aria-label="Open the wedding invitation"
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
+          onOpenStart?.();
           void startOpener();
         }
       }}
@@ -278,13 +318,16 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
         >
           <video
             ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover"
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${frameReady || videoFailed ? "opacity-100" : "opacity-0"}`}
             src={OPENER_VIDEO.src}
             poster={OPENER_VIDEO.poster}
             playsInline
             muted={OPENER_VIDEO.muted}
             preload="auto"
-            onError={() => setVideoFailed(true)}
+            onError={() => {
+              setVideoFailed(true);
+              setFrameReady(true);
+            }}
             onEnded={handleVideoEnded}
             onTimeUpdate={handleTimeUpdate}
           />
@@ -293,7 +336,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
 
       <OpenerFeatherBurst active={showBurst} />
 
-      <span className="sr-only">Tap or swipe to open</span>
+      <span className="sr-only">Open the wedding invitation</span>
     </div>
   );
 }

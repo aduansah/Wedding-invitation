@@ -18,7 +18,10 @@ const textReveal = {
 
 export function OurStory() {
   return (
-    <section id="story" className="sea-section section-padding relative overflow-hidden pt-20 md:pt-36">
+    <section
+      id="story"
+      className="sea-section section-padding relative overflow-visible pt-20 md:pt-36"
+    >
       <div className="relative mx-auto max-w-5xl">
         <AnimatedHeading title="Our Story" subtitle="Forever Starts Here" script />
 
@@ -47,7 +50,7 @@ export function OurStory() {
           <motion.div
             custom={0.35}
             variants={textReveal}
-            className="glass-card rounded-2xl border border-gold/25 bg-white/75 p-8 text-center md:p-10"
+            className="glass-card relative z-20 rounded-2xl border border-gold/25 bg-white/75 p-8 text-center md:p-10"
           >
             <div className="mx-auto mb-6 h-px w-24 gold-line" />
 
