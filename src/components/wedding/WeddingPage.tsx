@@ -41,11 +41,7 @@ export function WeddingPage() {
   const musicRef = useRef<WeddingMusicHandle>(null);
   const storyAscentRef = useRef<HTMLDivElement>(null);
 
-  const faunaPhase: FaunaPhase = introDone
-    ? "hero"
-    : isRevealed
-      ? "opening"
-      : "intro";
+  const faunaPhase: FaunaPhase = isRevealed ? "hero" : "intro";
 
   useEffect(() => {
     if ("scrollRestoration" in history) {
@@ -76,18 +72,18 @@ export function WeddingPage() {
 
   return (
     <>
-      <MagicalFauna phase={faunaPhase} prominent={!introDone && !isRevealed} />
-      {introDone && <GlobalAmbience />}
+      <MagicalFauna phase={faunaPhase} prominent={!isRevealed} />
+      {isRevealed && <GlobalAmbience />}
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
       <main
         className="wedding-main relative z-[2] m-0 block w-full p-0"
-        aria-hidden={!introDone}
+        aria-hidden={!isRevealed}
       >
         <ScrollProgress />
-        {introDone && <FloatingFlorals />}
+        {isRevealed && <FloatingFlorals />}
 
-        <Hero revealed={isRevealed} scrollReady={introDone} />
+        <Hero revealed={isRevealed} scrollReady={isRevealed} />
 
         <div ref={storyAscentRef} className="relative overflow-visible">
           <OurStory />
@@ -127,7 +123,10 @@ export function WeddingPage() {
           onOpenStart={() => {
             musicRef.current?.play();
           }}
-          onReveal={() => setIsRevealed(true)}
+          onReveal={() => {
+            setIsRevealed(true);
+            document.documentElement.removeAttribute("data-intro-pending");
+          }}
           onFinish={() => setIntroDone(true)}
         />
       )}
