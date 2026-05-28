@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Great_Vibes, Playfair_Display, Poppins } from "next/font/google";
-import { COUPLE, HASHTAG, WEDDING_DATES } from "@/lib/constants";
+import { COUPLE, HASHTAG, OPENER_VIDEO, WEDDING_DATES } from "@/lib/constants";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -45,6 +45,12 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${playfair.variable} ${greatVibes.variable} ${poppins.variable}`}
     >
+      <head>
+        <link rel="preload" href={OPENER_VIDEO.src} as="video" type="video/mp4" />
+        {OPENER_VIDEO.poster ? (
+          <link rel="preload" href={OPENER_VIDEO.poster} as="image" />
+        ) : null}
+      </head>
       <body className="m-0 min-h-screen p-0 font-[family-name:var(--font-poppins)] antialiased">
         {children}
       </body>
