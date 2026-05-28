@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { head, put } from "@vercel/blob";
+import { get, put } from "@vercel/blob";
 import type { RsvpStoreData, RsvpSubmission } from "./rsvpTypes";
 
 const BLOB_PATHNAME = "wedding-rsvp/submissions.json";
@@ -26,10 +26,15 @@ async function writeLocalStore(data: RsvpStoreData) {
 
 async function readBlobStore(): Promise<RsvpStoreData> {
   try {
-    const meta = await head(BLOB_PATHNAME);
-    const response = await fetch(meta.url, { cache: "no-store" });
-    if (!response.ok) return emptyStore();
-    const parsed = (await response.json()) as RsvpStoreData;
+    const result = await get(BLOB_PATHNAME, {
+      access: "private",
+      useCache: false,
+    });
+
+    if (!result?.stream) return emptyStore();
+
+    const raw = await new Response(result.stream).text();
+    const parsed = JSON.parse(raw) as RsvpStoreData;
     if (!Array.isArray(parsed.submissions)) return emptyStore();
     return parsed;
   } catch {

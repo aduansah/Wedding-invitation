@@ -46,14 +46,13 @@ export default function RootLayout({
       className={`${playfair.variable} ${greatVibes.variable} ${bodyFont.variable}`}
     >
       <head>
-        {OPENER_VIDEO.poster ? (
-          <link
-            rel="preload"
-            href={OPENER_VIDEO.poster}
-            as="image"
-            fetchPriority="high"
-          />
-        ) : null}
+        <link
+          rel="preload"
+          href={OPENER_VIDEO.src}
+          as="video"
+          type="video/mp4"
+          fetchPriority="high"
+        />
       </head>
       <body className="m-0 min-h-screen p-0 font-[family-name:var(--font-sans)] antialiased">
         {children}

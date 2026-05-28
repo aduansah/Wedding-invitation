@@ -10,7 +10,6 @@ export const HASHTAG = "#Mprez26";
 /** Drop your opener animation at public/videos/opener.mp4 */
 export const OPENER_VIDEO = {
   src: "/videos/opener.mp4",
-  poster: "/images/envelope-closed.png",
   muted: true,
 } as const;
 

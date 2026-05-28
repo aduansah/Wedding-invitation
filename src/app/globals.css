@@ -276,7 +276,12 @@ html[data-intro-pending] .wedding-main {
   position: fixed;
   inset: 0;
   z-index: 240;
-  background: var(--sea-white) url("/images/envelope-closed.png") center / cover no-repeat;
+  background: linear-gradient(
+    180deg,
+    var(--sea-white) 0%,
+    var(--sea-light) 45%,
+    var(--sea-white) 100%
+  );
   transition: opacity 0.35s ease;
 }
 
@@ -293,6 +298,13 @@ html:not([data-intro-pending]) .intro-boot-screen {
   touch-action: manipulation;
   cursor: pointer;
   background: var(--sea-white);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.video-opener video {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity, transform;
 }
 
 .sr-only {

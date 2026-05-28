@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     const submission = await addRsvpSubmission(firstName, lastName);
 
     return NextResponse.json({ ok: true, submission });
-  } catch {
+  } catch (error) {
+    console.error("RSVP save failed:", error);
     return NextResponse.json(
       { error: "Unable to save RSVP right now. Please try again." },
       { status: 500 },
