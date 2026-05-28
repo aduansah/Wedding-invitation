@@ -9,14 +9,16 @@ const LOCAL_DATA_PATH = path.join(process.cwd(), "data", "rsvps.json");
 
 const emptyStore = (): RsvpStoreData => ({ submissions: [] });
 
-function useBlobStore() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+function isVercelRuntime() {
+  return Boolean(process.env.VERCEL);
 }
 
-function assertProductionStorage() {
-  if (process.env.NODE_ENV === "production" && !useBlobStore()) {
-    throw new Error("RSVP storage is not configured for this deployment.");
+function useBlobStore() {
+  if (isVercelRuntime()) {
+    return true;
   }
+
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 
 function sortSubmissions(submissions: RsvpSubmission[]) {
@@ -147,8 +149,6 @@ async function clearBlobSubmissions() {
 }
 
 export async function listRsvpSubmissions(): Promise<RsvpSubmission[]> {
-  assertProductionStorage();
-
   if (useBlobStore()) {
     return listBlobSubmissions();
   }
@@ -161,8 +161,6 @@ export async function addRsvpSubmission(
   firstName: string,
   lastName: string,
 ): Promise<RsvpSubmission> {
-  assertProductionStorage();
-
   const submission: RsvpSubmission = {
     id: crypto.randomUUID(),
     firstName,
@@ -182,8 +180,6 @@ export async function addRsvpSubmission(
 }
 
 export async function clearRsvpSubmissions(): Promise<void> {
-  assertProductionStorage();
-
   if (useBlobStore()) {
     await clearBlobSubmissions();
     return;

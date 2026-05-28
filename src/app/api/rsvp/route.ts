@@ -32,11 +32,9 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("RSVP save failed:", error);
 
-    const message =
-      error instanceof Error && error.message.includes("not configured")
-        ? "RSVP storage is not configured yet. Please try again shortly."
-        : "Unable to save RSVP right now. Please try again.";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unable to save RSVP right now. Please try again." },
+      { status: 500 },
+    );
   }
 }
