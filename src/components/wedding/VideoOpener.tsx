@@ -131,6 +131,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
   const hasTransitioned = useRef(false);
 
   useEffect(() => {
+    document.getElementById("intro-boot-screen")?.remove();
     document.body.style.overflow = "hidden";
     document.documentElement.style.background = "var(--sea-white)";
     return () => {
@@ -250,7 +251,11 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     >
       <div
         className="absolute inset-0 z-0 bg-[var(--sea-white)] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url("${WEDDING_IMAGES.heroBackground}")` }}
+        style={
+          phase === "exit"
+            ? { backgroundImage: `url("${WEDDING_IMAGES.heroBackground}")` }
+            : undefined
+        }
         aria-hidden="true"
       />
 

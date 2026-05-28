@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { VideoOpener } from "./VideoOpener";
 import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
@@ -44,13 +44,22 @@ export function WeddingPage() {
       ? "opening"
       : "intro";
 
+  useEffect(() => {
+    if (!introDone) return;
+    document.documentElement.removeAttribute("data-intro-pending");
+    document.getElementById("intro-boot-screen")?.remove();
+  }, [introDone]);
+
   return (
     <>
       <MagicalFauna phase={faunaPhase} prominent={!introDone && !isRevealed} />
       {introDone && <GlobalAmbience />}
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
-      <main className="relative z-[2] m-0 block w-full p-0">
+      <main
+        className={`wedding-main relative z-[2] m-0 block w-full p-0${introDone ? "" : " invisible pointer-events-none"}`}
+        aria-hidden={!introDone}
+      >
         <ScrollProgress />
         {introDone && <FloatingFlorals />}
 

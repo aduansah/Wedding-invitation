@@ -221,10 +221,26 @@ body {
   filter: blur(8px);
 }
 
+html[data-intro-pending] .wedding-main {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.intro-boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  background: var(--sea-white);
+}
+
+html:not([data-intro-pending]) .intro-boot-screen {
+  display: none;
+}
+
 .video-opener {
   touch-action: manipulation;
   cursor: pointer;
-  background: transparent;
+  background: var(--sea-white);
 }
 
 .sr-only {

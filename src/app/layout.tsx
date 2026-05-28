@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Great_Vibes, Playfair_Display, Poppins } from "next/font/google";
 import { COUPLE, HASHTAG, WEDDING_DATES } from "@/lib/constants";
 import "./globals.css";
@@ -41,6 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${greatVibes.variable} ${poppins.variable}`}>
       <body className="m-0 min-h-screen p-0 font-[family-name:var(--font-poppins)] antialiased">
+        <Script id="intro-pending" strategy="beforeInteractive">
+          {`document.documentElement.dataset.introPending="1"`}
+        </Script>
         {children}
       </body>
     </html>
