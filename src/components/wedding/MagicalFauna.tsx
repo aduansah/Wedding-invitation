@@ -221,9 +221,9 @@ function MagicalParticle({
         rotate: base.rotate,
       }}
       transition={{
-        duration: phase === "opening" ? 1.6 : phase === "hero" ? 2.2 : particle.duration,
-        ease: phase === "opening" ? [0.22, 1, 0.36, 1] : "easeInOut",
-        delay: phase === "opening" ? particle.delay * 0.15 : 0,
+        duration: phase === "opening" ? 0.95 : phase === "hero" ? 2.2 : particle.duration,
+        ease: phase === "opening" ? [0.16, 0.84, 0.22, 1] : "easeInOut",
+        delay: phase === "opening" ? particle.delay * 0.05 : 0,
       }}
     >
       <motion.div
@@ -253,12 +253,12 @@ function MagicalParticle({
                       x: [0, 5, -5, 0],
                     }
                   : {
-                      y: [0, -28, -12, -40],
-                      x: [0, (particle.id % 2 === 0 ? -1 : 1) * 20, 0],
+                      y: [0, -34, -14, -48],
+                      x: [0, (particle.id % 2 === 0 ? -1 : 1) * 28, 0],
                     }
           }
           transition={{
-            duration: phase === "opening" ? 1.8 : phase === "hero" ? particle.duration + 2.5 : particle.duration,
+            duration: phase === "opening" ? 1.05 : phase === "hero" ? particle.duration + 2.5 : particle.duration,
             repeat: phase === "opening" || isReacting ? 0 : Infinity,
             ease: "easeInOut",
             delay: particle.delay,

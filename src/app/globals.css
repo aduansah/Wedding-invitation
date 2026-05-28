@@ -224,7 +224,7 @@ body {
 .video-opener {
   touch-action: manipulation;
   cursor: pointer;
-  background: #000;
+  background: transparent;
 }
 
 .sr-only {

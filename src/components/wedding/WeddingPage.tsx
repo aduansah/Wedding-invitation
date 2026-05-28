@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import { VideoOpener } from "./VideoOpener";
 import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
@@ -47,7 +46,7 @@ export function WeddingPage() {
 
   return (
     <>
-      <MagicalFauna phase={faunaPhase} prominent={!introDone} />
+      <MagicalFauna phase={faunaPhase} prominent={!introDone && !isRevealed} />
       {introDone && <GlobalAmbience />}
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
@@ -78,18 +77,16 @@ export function WeddingPage() {
         <Footer />
       </main>
 
-      <AnimatePresence>
-        {!introDone && (
-          <VideoOpener
-            key="video-opener"
-            onOpenStart={() => {
-              musicRef.current?.play();
-            }}
-            onReveal={() => setIsRevealed(true)}
-            onFinish={() => setIntroDone(true)}
-          />
-        )}
-      </AnimatePresence>
+      {!introDone && (
+        <VideoOpener
+          key="video-opener"
+          onOpenStart={() => {
+            musicRef.current?.play();
+          }}
+          onReveal={() => setIsRevealed(true)}
+          onFinish={() => setIntroDone(true)}
+        />
+      )}
     </>
   );
 }
