@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  forwardRef,
+} from "react";
 import { createPortal } from "react-dom";
 import { Music, VolumeX } from "lucide-react";
 import { WEDDING_AUDIO } from "@/lib/constants";
@@ -14,10 +21,13 @@ type WeddingMusicProps = {
   revealed?: boolean;
 };
 
+let sharedAudioElement: HTMLAudioElement | null = null;
+
 export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
   function WeddingMusic({ revealed = false }, ref) {
     const audioRef = useRef<HTMLAudioElement>(null);
-    const isPlayingRef = useRef(false);
+    const autoPlayedRef = useRef(false);
+    const playPendingRef = useRef(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [hasAudio, setHasAudio] = useState(true);
     const [mounted, setMounted] = useState(false);
@@ -36,50 +46,62 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
 
     const play = useCallback(() => {
       const audio = audioRef.current;
-      if (!audio || !hasAudio) return;
+      if (!audio || !hasAudio || playPendingRef.current) return;
 
-      if (!audio.paused && isPlayingRef.current) return;
+      if (sharedAudioElement && sharedAudioElement !== audio && !sharedAudioElement.paused) {
+        sharedAudioElement.pause();
+        sharedAudioElement.currentTime = 0;
+      }
 
+      if (!audio.paused) {
+        setIsPlaying(true);
+        return;
+      }
+
+      playPendingRef.current = true;
       ensureSource();
 
       const playPromise = audio.play();
       if (playPromise === undefined) {
-        isPlayingRef.current = true;
+        sharedAudioElement = audio;
+        playPendingRef.current = false;
         setIsPlaying(true);
         return;
       }
 
       playPromise
         .then(() => {
-          isPlayingRef.current = true;
+          sharedAudioElement = audio;
           setIsPlaying(true);
         })
-        .catch(() => setHasAudio(false));
+        .catch(() => setHasAudio(false))
+        .finally(() => {
+          playPendingRef.current = false;
+        });
     }, [ensureSource, hasAudio]);
 
     const pause = useCallback(() => {
       const audio = audioRef.current;
       if (!audio) return;
       audio.pause();
-      isPlayingRef.current = false;
       setIsPlaying(false);
     }, []);
 
     useImperativeHandle(ref, () => ({ play, pause }), [play, pause]);
 
     useEffect(() => {
+      if (!revealed || autoPlayedRef.current) return;
+      autoPlayedRef.current = true;
+      play();
+    }, [play, revealed]);
+
+    useEffect(() => {
       const audio = audioRef.current;
       if (!audio) return;
 
       const handleError = () => setHasAudio(false);
-      const handlePlay = () => {
-        isPlayingRef.current = true;
-        setIsPlaying(true);
-      };
-      const handlePause = () => {
-        isPlayingRef.current = false;
-        setIsPlaying(false);
-      };
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
 
       audio.addEventListener("error", handleError);
       audio.addEventListener("play", handlePlay);
@@ -89,6 +111,9 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
         audio.removeEventListener("error", handleError);
         audio.removeEventListener("play", handlePlay);
         audio.removeEventListener("pause", handlePause);
+        if (sharedAudioElement === audio) {
+          sharedAudioElement = null;
+        }
       };
     }, []);
 

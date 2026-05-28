@@ -34,10 +34,13 @@ async function readBlobStore(): Promise<RsvpStoreData> {
     if (!result?.stream) return emptyStore();
 
     const raw = await new Response(result.stream).text();
+    if (!raw.trim()) return emptyStore();
+
     const parsed = JSON.parse(raw) as RsvpStoreData;
     if (!Array.isArray(parsed.submissions)) return emptyStore();
     return parsed;
-  } catch {
+  } catch (error) {
+    console.error("Failed to read RSVP blob store:", error);
     return emptyStore();
   }
 }
@@ -53,6 +56,20 @@ async function writeBlobStore(data: RsvpStoreData) {
 
 function useBlobStore() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+async function persistStore(data: RsvpStoreData) {
+  try {
+    if (useBlobStore()) {
+      await writeBlobStore(data);
+      return;
+    }
+
+    await writeLocalStore(data);
+  } catch (error) {
+    console.error("Failed to persist RSVP store:", error);
+    throw error;
+  }
 }
 
 export async function listRsvpSubmissions(): Promise<RsvpSubmission[]> {
@@ -75,12 +92,11 @@ export async function addRsvpSubmission(
   };
 
   store.submissions.push(submission);
-
-  if (useBlobStore()) {
-    await writeBlobStore(store);
-  } else {
-    await writeLocalStore(store);
-  }
+  await persistStore(store);
 
   return submission;
+}
+
+export async function clearRsvpSubmissions(): Promise<void> {
+  await persistStore(emptyStore());
 }

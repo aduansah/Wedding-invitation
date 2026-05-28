@@ -3,27 +3,25 @@ import { cookies } from "next/headers";
 
 export const RSVP_ADMIN_COOKIE = "rsvp_admin_session";
 
+const DEFAULT_ADMIN_PASSWORD = "Mprez26";
+
 function getAdminSecret() {
-  return process.env.RSVP_ADMIN_SECRET || process.env.RSVP_ADMIN_PASSWORD || "Mprez26-admin";
+  return (
+    process.env.RSVP_ADMIN_SECRET ||
+    process.env.RSVP_ADMIN_PASSWORD ||
+    DEFAULT_ADMIN_PASSWORD
+  );
 }
 
 export function getAdminPassword() {
-  if (process.env.RSVP_ADMIN_PASSWORD) {
-    return process.env.RSVP_ADMIN_PASSWORD;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    return "Mprez26";
-  }
-
-  return "";
+  return process.env.RSVP_ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
 }
 
 export function verifyAdminPassword(password: string) {
   const expected = getAdminPassword();
-  if (!expected) return false;
+  const normalized = password.trim();
 
-  const a = Buffer.from(password);
+  const a = Buffer.from(normalized);
   const b = Buffer.from(expected);
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);

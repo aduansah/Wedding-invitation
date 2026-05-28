@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useState } from "react";
+import { FormEvent, useCallback, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Phone } from "lucide-react";
 import { RSVP_CONTACTS } from "@/lib/constants";
@@ -50,7 +50,7 @@ function InviteAcceptedButton({
   );
 }
 
-function RsvpForm() {
+function RsvpForm({ highlighted }: { highlighted: boolean }) {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -106,7 +106,11 @@ function RsvpForm() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       onSubmit={handleSubmit}
-      className="mx-auto mb-10 max-w-xl rounded-2xl border border-gold/30 bg-white/85 p-6 shadow-sm backdrop-blur-sm md:p-8"
+      className={`mx-auto mb-10 max-w-xl rounded-2xl border bg-white/85 p-6 shadow-sm backdrop-blur-sm transition-shadow duration-500 md:p-8 ${
+        highlighted
+          ? "border-purple/45 ring-4 ring-gold/45 ring-offset-2 ring-offset-[#fffcf9] shadow-[0_0_32px_rgba(123,75,168,0.18)]"
+          : "border-gold/30"
+      }`}
     >
       <p className="mb-6 text-center font-[family-name:var(--font-sans)] text-sm font-medium text-purple md:text-base">
         Share your name to confirm online, or call one of the numbers below.
@@ -209,12 +213,26 @@ export function RSVP() {
   const [inviteAccepted, setInviteAccepted] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const [formVisible, setFormVisible] = useState(false);
+  const [highlightForm, setHighlightForm] = useState(false);
+  const formAnchorRef = useRef<HTMLDivElement>(null);
 
   const handleAccept = useCallback(() => {
     if (inviteAccepted) return;
     setInviteAccepted(true);
     setCelebrating(true);
     setFormVisible(true);
+    setHighlightForm(true);
+
+    window.setTimeout(() => {
+      formAnchorRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 450);
+
+    window.setTimeout(() => {
+      setHighlightForm(false);
+    }, 4200);
   }, [inviteAccepted]);
 
   const handleCelebrationComplete = useCallback(() => {
@@ -231,7 +249,11 @@ export function RSVP() {
           <AnimatedHeading title="RSVPs" subtitle="We Can't Wait to Celebrate With You" script />
         </div>
 
-        {formVisible ? <RsvpForm /> : null}
+        {formVisible ? (
+          <div ref={formAnchorRef} className="scroll-mt-24">
+            <RsvpForm highlighted={highlightForm} />
+          </div>
+        ) : null}
 
         {inviteAccepted ? (
           <motion.p

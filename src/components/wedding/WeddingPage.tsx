@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { VideoOpener } from "./VideoOpener";
 import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
-import { WeddingMusic, type WeddingMusicHandle } from "./WeddingMusic";
+import { WeddingMusic } from "./WeddingMusic";
 import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
 import { WEDDING_IMAGES } from "@/lib/constants";
@@ -39,7 +39,6 @@ const Footer = dynamic(
 export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [introDone, setIntroDone] = useState(false);
-  const musicRef = useRef<WeddingMusicHandle>(null);
   const storyAscentRef = useRef<HTMLDivElement>(null);
 
   const faunaPhase: FaunaPhase = isRevealed ? "hero" : "intro";
@@ -75,7 +74,7 @@ export function WeddingPage() {
     <>
       <MagicalFauna phase={faunaPhase} prominent={!isRevealed} />
       {introDone && <GlobalAmbience />}
-      <WeddingMusic ref={musicRef} revealed={isRevealed} />
+      <WeddingMusic revealed={isRevealed} />
 
       {isRevealed ? (
         <main
@@ -132,9 +131,6 @@ export function WeddingPage() {
           onReveal={() => {
             setIsRevealed(true);
             document.documentElement.removeAttribute("data-intro-pending");
-            window.requestAnimationFrame(() => {
-              musicRef.current?.play();
-            });
           }}
           onFinish={() => setIntroDone(true)}
         />

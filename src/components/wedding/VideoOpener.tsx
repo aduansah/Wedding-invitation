@@ -157,7 +157,7 @@ function OpenerInstruction({ ready }: { ready: boolean }) {
   return (
     <motion.div
       key="opener-instruction"
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-[25] flex flex-col items-center pb-[27%] md:pb-[28%]"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[25] flex flex-col items-center pb-[34%] md:pb-[28%]"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 6 }}
@@ -205,7 +205,7 @@ function OpenerInstruction({ ready }: { ready: boolean }) {
           }
         >
           <p className="text-center font-[family-name:var(--font-sans)] text-[9px] font-medium tracking-[0.18em] text-purple-deep/85 uppercase md:text-[10px]">
-            {ready ? "Tap to open" : "Preparing…"}
+            {ready ? "Tap to open invite" : "Preparing…"}
           </p>
         </motion.div>
 
@@ -333,6 +333,8 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
     const video = videoRef.current;
     if (video) {
       video.pause();
+      video.muted = true;
+      video.volume = 0;
     }
 
     setShowBurst(true);
@@ -502,7 +504,7 @@ export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProp
 
       <span className="sr-only">
         {frameReady
-          ? "Tap anywhere to open the wedding invitation"
+          ? "Tap to open your wedding invitation"
           : "Wedding invitation loading"}
       </span>
     </motion.div>

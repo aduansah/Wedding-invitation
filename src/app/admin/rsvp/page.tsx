@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Download, LogOut, RefreshCw, Users } from "lucide-react";
+import { ArrowLeft, Download, LogOut, RefreshCw, Trash2, Users } from "lucide-react";
 import { COUPLE } from "@/lib/constants";
 import type { RsvpSubmission } from "@/lib/rsvpTypes";
 
@@ -18,6 +18,7 @@ export default function RsvpAdminPage() {
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
   const [submissions, setSubmissions] = useState<RsvpSubmission[]>([]);
 
@@ -107,6 +108,30 @@ export default function RsvpAdminPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleClearAll = async () => {
+    const confirmed = window.confirm(
+      "Clear all RSVP submissions? This cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setClearing(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/rsvp/admin/clear", { method: "POST" });
+      if (!response.ok) {
+        setError("Unable to clear RSVP data.");
+        return;
+      }
+
+      await loadSubmissions();
+    } catch {
+      setError("Unable to clear RSVP data.");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#fffcf9] via-[#fff8f2] to-[#fceee6] px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-5xl">
@@ -149,6 +174,15 @@ export default function RsvpAdminPage() {
               >
                 <Download className="h-4 w-4" />
                 Export CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleClearAll()}
+                disabled={clearing || submissions.length === 0}
+                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2.5 font-[family-name:var(--font-sans)] text-xs font-semibold tracking-[0.14em] text-red-600 uppercase transition hover:bg-red-50 disabled:opacity-60"
+              >
+                <Trash2 className={`h-4 w-4 ${clearing ? "animate-pulse" : ""}`} />
+                Clear all
               </button>
               <button
                 type="button"
