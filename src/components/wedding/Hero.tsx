@@ -149,7 +149,11 @@ export function Hero({
         )}
       </div>
 
-      <StoryAscentImage containerRef={heroRef} active={scrollReady} />
+      <StoryAscentImage
+        containerRef={heroRef}
+        src={WEDDING_IMAGES.heroPhoto}
+        active={scrollReady}
+      />
 
       <ScrollGuide visible={revealed} href="#story" />
     </section>

@@ -96,7 +96,7 @@ export function WeddingPage() {
                 <div className="relative z-30 h-[min(24vh,188px)] overflow-visible md:h-[min(28vh,220px)]">
                   <StoryAscentImage
                     containerRef={storyAscentRef}
-                    src={WEDDING_IMAGES.heroPhoto}
+                    src={WEDDING_IMAGES.story}
                     alt="Michael and Precious"
                     variant="storyCard"
                     active
