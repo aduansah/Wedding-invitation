@@ -60,8 +60,8 @@ function getBasePosition(particle: Particle, phase: FaunaPhase) {
     return {
       x: ((particle.anchorX + particle.id * 7) % 92) + 4,
       y: ((particle.anchorY + particle.id * 5) % 75) + 8,
-      scale: particle.size * 0.85,
-      opacity: particle.kind === "butterfly" ? 0.38 : 0.28,
+      scale: particle.size * 0.88,
+      opacity: particle.kind === "butterfly" ? 0.5 : 0.4,
       rotate: particle.rotation + 15,
     };
   }
@@ -194,11 +194,13 @@ function MagicalParticle({
   phase,
   impulse,
   reducedMotion,
+  softScroll = false,
 }: {
   particle: Particle;
   phase: FaunaPhase;
   impulse: FaunaImpulse | null;
   reducedMotion: boolean;
+  softScroll?: boolean;
 }) {
   const base = getBasePosition(particle, phase);
   const burst =
@@ -230,8 +232,8 @@ function MagicalParticle({
         animate={{ x: 0, y: 0, rotate: 0 }}
         transition={{
           type: "spring",
-          stiffness: impulse?.type === "tap" ? 120 : 80,
-          damping: impulse?.type === "tap" ? 14 : 18,
+          stiffness: impulse?.type === "tap" ? 120 : softScroll ? 55 : 80,
+          damping: impulse?.type === "tap" ? 14 : softScroll ? 22 : 18,
           mass: particle.kind === "feather" ? 0.8 : 0.55,
         }}
       >
@@ -241,9 +243,9 @@ function MagicalParticle({
               ? {}
               : phase === "hero"
                 ? {
-                    y: [0, -10, 0, 8, 0],
-                    x: [0, 6, -4, 0],
-                    rotate: [0, 3, -2, 0],
+                    y: [0, -8, 0, 6, 0],
+                    x: [0, 4, -3, 0],
+                    rotate: [0, 2, -1.5, 0],
                   }
                 : phase === "intro"
                   ? {
@@ -256,7 +258,7 @@ function MagicalParticle({
                     }
           }
           transition={{
-            duration: phase === "opening" ? 1.8 : particle.duration,
+            duration: phase === "opening" ? 1.8 : phase === "hero" ? particle.duration + 2.5 : particle.duration,
             repeat: phase === "opening" || isReacting ? 0 : Infinity,
             ease: "easeInOut",
             delay: particle.delay,
@@ -278,7 +280,15 @@ function MagicalParticle({
   );
 }
 
-function useFaunaInteraction(enabled: boolean) {
+function useFaunaInteraction({
+  enabled,
+  scrollOnly = false,
+  soft = false,
+}: {
+  enabled: boolean;
+  scrollOnly?: boolean;
+  soft?: boolean;
+}) {
   const [impulse, setImpulse] = useState<FaunaImpulse | null>(null);
   const impulseId = useRef(0);
   const lastScrollY = useRef(0);
@@ -291,8 +301,8 @@ function useFaunaInteraction(enabled: boolean) {
       setImpulse((current) =>
         current?.id === impulseId.current ? null : current,
       );
-    }, 900);
-  }, []);
+    }, soft ? 1200 : 900);
+  }, [soft]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -312,30 +322,38 @@ function useFaunaInteraction(enabled: boolean) {
         const delta = window.scrollY - lastScrollY.current;
         lastScrollY.current = window.scrollY;
 
-        if (Math.abs(delta) < 2) return;
+        if (Math.abs(delta) < (soft ? 5 : 2)) return;
+
+        const scrollStrength = soft ? 0.028 : 0.06;
+        const liftStrength = soft ? 0.018 : 0.04;
 
         emitImpulse({
           type: "scroll",
           x: 50,
           y: 40,
-          forceX: delta * 0.06,
-          forceY: -delta * 0.04,
+          forceX: delta * scrollStrength,
+          forceY: -delta * liftStrength,
         });
       });
     };
 
     lastScrollY.current = window.scrollY;
-    window.addEventListener("pointerdown", handlePointer, { passive: true });
+
+    if (!scrollOnly) {
+      window.addEventListener("pointerdown", handlePointer, { passive: true });
+    }
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("pointerdown", handlePointer);
+      if (!scrollOnly) {
+        window.removeEventListener("pointerdown", handlePointer);
+      }
       window.removeEventListener("scroll", handleScroll);
       if (scrollRaf.current !== null) {
         window.cancelAnimationFrame(scrollRaf.current);
       }
     };
-  }, [enabled, emitImpulse]);
+  }, [enabled, emitImpulse, scrollOnly, soft]);
 
   return impulse;
 }
@@ -346,9 +364,15 @@ type MagicalFaunaProps = {
 };
 
 export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
-  const particles = useMemo(() => generateParticles(14), []);
+  const particleCount = prominent ? 12 : 9;
+  const particles = useMemo(() => generateParticles(particleCount), [particleCount]);
   const reducedMotion = useReducedMotion() ?? false;
-  const impulse = useFaunaInteraction(true);
+  const softScroll = !prominent;
+  const impulse = useFaunaInteraction({
+    enabled: !reducedMotion,
+    scrollOnly: softScroll,
+    soft: softScroll,
+  });
 
   return (
     <div
@@ -358,7 +382,7 @@ export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
       aria-hidden="true"
     >
       {phase === "hero" && (
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/5" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-transparent md:from-black/5 md:to-black/5" />
       )}
 
       {particles.map((particle) => (
@@ -368,10 +392,11 @@ export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
           phase={phase}
           impulse={impulse}
           reducedMotion={reducedMotion}
+          softScroll={softScroll}
         />
       ))}
 
-      {particles.slice(0, 6).map((p) => {
+      {particles.slice(0, prominent ? 6 : 4).map((p) => {
         const dustBurst =
           impulse && !reducedMotion
             ? impulse.type === "tap"
@@ -385,7 +410,7 @@ export function MagicalFauna({ phase, prominent = false }: MagicalFaunaProps) {
                       Math.max(Math.hypot(p.anchorX - impulse.x, p.anchorY - impulse.y), 1)) *
                     20,
                 }
-              : { x: impulse.forceX * 2, y: impulse.forceY * 2 }
+              : { x: impulse.forceX * (softScroll ? 1.2 : 2), y: impulse.forceY * (softScroll ? 1.2 : 2) }
             : { x: 0, y: 0 };
 
         return (

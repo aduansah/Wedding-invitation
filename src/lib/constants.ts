@@ -37,6 +37,7 @@ export const EVENTS = [
     emoji: "💒",
     date: "Saturday, July 18, 2026",
     time: "2:00 PM EST",
+    dressCode: "Come Elegantly Dressed",
     venue: "Ghana Methodist Church of Toronto",
     address: "69 Milvan Dr, North York",
     icon: "church" as const,
@@ -69,10 +70,11 @@ export const RSVP_CONTACTS = [
   { name: "Contact 4", phone: "(647) 785-7395", tel: "+16477857395" },
 ] as const;
 
-/** Hero background + story photo + section divider */
+/** Hero background + story photos + section divider */
 export const WEDDING_IMAGES = {
   heroBackground: "/images/hero-background.png",
   story: "/images/story.png",
+  story2: "/images/story2.png",
   sectionBorder: "/images/boarder.png",
 } as const;
 

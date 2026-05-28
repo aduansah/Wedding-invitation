@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { WEDDING_IMAGES } from "@/lib/constants";
 
 type SectionDividerProps = {
@@ -9,6 +9,8 @@ type SectionDividerProps = {
 };
 
 export function SectionDivider({ variant = "simple" }: SectionDividerProps) {
+  const reducedMotion = useReducedMotion() ?? false;
+
   if (variant === "floral") {
     return (
       <div
@@ -24,10 +26,10 @@ export function SectionDivider({ variant = "simple" }: SectionDividerProps) {
         >
           <motion.div
             className="absolute inset-0"
-            animate={{ x: ["-4%", "4%", "-4%"] }}
+            animate={reducedMotion ? undefined : { x: ["-3%", "3%", "-3%"] }}
             transition={{
-              duration: 10,
-              repeat: Infinity,
+              duration: 11,
+              repeat: reducedMotion ? 0 : Infinity,
               ease: "easeInOut",
             }}
           >
@@ -36,7 +38,8 @@ export function SectionDivider({ variant = "simple" }: SectionDividerProps) {
               alt=""
               fill
               sizes="100vw"
-              className="scale-[2.35] object-cover object-[center_46%] mix-blend-lighten md:scale-[2.5] lg:scale-[2.65]"
+              quality={80}
+              className="scale-[2.35] object-cover object-[center_46%] md:scale-[2.5] lg:scale-[2.65]"
               aria-hidden="true"
             />
           </motion.div>

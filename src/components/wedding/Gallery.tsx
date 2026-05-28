@@ -54,6 +54,7 @@ export function Gallery() {
                   fill
                   className="object-cover"
                   sizes="100vw"
+                  quality={75}
                   priority={mobileIndex === 0}
                 />
               </motion.div>
@@ -115,6 +116,8 @@ export function Gallery() {
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 1024px) 50vw, 33vw"
+                quality={75}
+                loading={index > 2 ? "lazy" : undefined}
               />
             </motion.div>
           ))}

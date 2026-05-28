@@ -1,12 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 const corners = [
-  { className: "top-0 left-0 text-purple/35", delay: 0, rotate: 0 },
-  { className: "top-0 right-0 text-blush/40", delay: 1, rotate: 90 },
+  { className: "top-0 right-0 text-blush/35", delay: 0, rotate: 90 },
   { className: "bottom-0 left-0 text-gold/30", delay: 0.5, rotate: -90 },
-  { className: "bottom-0 right-0 text-lavender/35", delay: 1.5, rotate: 180 },
 ];
 
 function FloralCorner({ className }: { className?: string }) {
@@ -26,30 +22,25 @@ function FloralCorner({ className }: { className?: string }) {
         opacity="0.5"
       />
       <circle cx="55" cy="58" r="4" fill="currentColor" opacity="0.35" />
-      <circle cx="68" cy="50" r="3" fill="currentColor" opacity="0.25" />
     </svg>
   );
 }
 
 export function FloatingFlorals() {
   return (
-    <>
+    <div className="pointer-events-none hidden md:block" aria-hidden="true">
       {corners.map((corner, i) => (
-        <motion.div
+        <div
           key={i}
-          className={`pointer-events-none fixed z-[3] ${corner.className}`}
-          style={{ transform: `rotate(${corner.rotate}deg)` }}
-          animate={{ y: [0, -10, 0], opacity: [0.5, 0.9, 0.5] }}
-          transition={{
-            duration: 7 + i,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: corner.delay,
+          className={`animate-float fixed z-[3] ${corner.className}`}
+          style={{
+            transform: `rotate(${corner.rotate}deg)`,
+            animationDelay: `${corner.delay}s`,
           }}
         >
-          <FloralCorner className="h-24 w-24 md:h-36 md:w-36" />
-        </motion.div>
+          <FloralCorner className="h-28 w-28 lg:h-36 lg:w-36" />
+        </div>
       ))}
-    </>
+    </div>
   );
 }

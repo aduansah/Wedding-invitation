@@ -1,9 +1,11 @@
 "use client";
 
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Church, Sparkles, Heart } from "lucide-react";
-import { EVENTS } from "@/lib/constants";
+import { EVENTS, WEDDING_IMAGES } from "@/lib/constants";
 import { AnimatedHeading } from "./AnimatedHeading";
+import { StoryAscentImage } from "./StoryAscentImage";
 
 const iconMap = {
   rings: Heart,
@@ -11,9 +13,19 @@ const iconMap = {
   sparkles: Sparkles,
 } as const;
 
-export function EventTimeline() {
+function DressCodeBadge({ dressCode }: { dressCode: string }) {
   return (
-    <section id="events" className="sea-section section-padding relative overflow-hidden">
+    <p className="mt-4 inline-block rounded-full border border-champagne/30 bg-champagne/5 px-4 py-1 text-sm text-charcoal-soft">
+      Dress Code: {dressCode}
+    </p>
+  );
+}
+
+export function EventTimeline() {
+  const receptionRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <section id="events" className="sea-section section-padding relative overflow-visible">
       <div className="absolute inset-0 opacity-[0.03]">
         <div
           className="h-full w-full"
@@ -35,13 +47,15 @@ export function EventTimeline() {
             {EVENTS.map((event, index) => {
               const Icon = iconMap[event.icon];
               const isEven = index % 2 === 0;
+              const isReception = event.id === "reception";
 
               return (
                 <motion.div
                   key={event.id}
+                  ref={isReception ? receptionRef : undefined}
                   className={`relative flex flex-col md:flex-row ${
                     isEven ? "md:flex-row" : "md:flex-row-reverse"
-                  }`}
+                  } ${isReception ? "overflow-visible pb-[min(16vh,130px)] md:pb-[min(20vh,160px)]" : ""}`}
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
@@ -82,12 +96,6 @@ export function EventTimeline() {
                       <p className="font-medium text-charcoal">{event.date}</p>
                       <p className="mt-1 text-champagne">{event.time}</p>
 
-                      {"dressCode" in event && event.dressCode && (
-                        <p className="mt-3 inline-block rounded-full border border-champagne/30 bg-champagne/5 px-4 py-1 text-sm text-charcoal-soft">
-                          Dress Code: {event.dressCode}
-                        </p>
-                      )}
-
                       <div className="mt-6 border-t border-champagne/15 pt-6">
                         <p className="text-xs tracking-widest text-charcoal-soft uppercase">
                           Venue
@@ -98,7 +106,20 @@ export function EventTimeline() {
                         <p className="mt-1 text-sm text-charcoal-soft">{event.address}</p>
                       </div>
                     </motion.div>
+
+                    {"dressCode" in event && event.dressCode && (
+                      <DressCodeBadge dressCode={event.dressCode} />
+                    )}
                   </div>
+
+                  {isReception && (
+                    <StoryAscentImage
+                      containerRef={receptionRef}
+                      src={WEDDING_IMAGES.story2}
+                      alt="Michael and Precious at reception"
+                      variant="compact"
+                    />
+                  )}
 
                   <div className="absolute left-1/2 hidden h-4 w-4 -translate-x-1/2 rounded-full border-2 border-champagne bg-cream md:block">
                     <div className="absolute inset-1 animate-pulse-glow rounded-full bg-gold/60" />

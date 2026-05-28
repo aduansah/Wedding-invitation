@@ -20,7 +20,7 @@ export function Footer() {
 
           <div className="mx-auto my-8 h-px w-24 gold-line" />
 
-          <p className="wedding-script text-3xl leading-none text-purple md:text-4xl">
+          <p className="font-[family-name:var(--font-poppins)] text-xl font-light leading-none tracking-[-0.06em] text-purple antialiased md:text-2xl">
             {HASHTAG}
           </p>
 

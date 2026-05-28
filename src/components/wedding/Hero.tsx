@@ -29,11 +29,12 @@ export function Hero({ revealed = false }: { revealed?: boolean }) {
         gsap.to(bgRef.current, {
           yPercent: 10,
           ease: "none",
+          force3D: true,
           scrollTrigger: {
             trigger: heroRef.current,
             start: "top top",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.6,
           },
         });
       }
@@ -67,12 +68,8 @@ export function Hero({ revealed = false }: { revealed?: boolean }) {
 
         <motion.h1
           className="mx-auto font-[family-name:var(--font-playfair)] text-5xl leading-[1.1] text-purple-deep md:text-7xl lg:text-[5.25rem]"
-          initial={{ opacity: 0, y: 36, filter: "blur(10px)" }}
-          animate={
-            revealed
-              ? { opacity: 1, y: 0, filter: "blur(0px)" }
-              : { opacity: 0, y: 36, filter: "blur(10px)" }
-          }
+          initial={{ opacity: 0, y: 36 }}
+          animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 36 }}
           transition={{ delay: 0.5, duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         >
           {COUPLE.groom}

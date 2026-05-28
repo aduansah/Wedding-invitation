@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { VideoOpener } from "./VideoOpener";
@@ -10,12 +11,28 @@ import { GlobalAmbience } from "./GlobalAmbience";
 import { FloatingFlorals } from "./FloatingFlorals";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
-import { EventTimeline } from "./EventTimeline";
-import { Location } from "./Location";
-import { Gallery } from "./Gallery";
-import { RSVP } from "./RSVP";
-import { Footer } from "./Footer";
 import { SectionDivider } from "./SectionDivider";
+
+const EventTimeline = dynamic(
+  () => import("./EventTimeline").then((m) => ({ default: m.EventTimeline })),
+  { loading: () => <div className="min-h-[40vh]" aria-hidden="true" /> },
+);
+const Location = dynamic(
+  () => import("./Location").then((m) => ({ default: m.Location })),
+  { loading: () => <div className="min-h-[40vh]" aria-hidden="true" /> },
+);
+const Gallery = dynamic(
+  () => import("./Gallery").then((m) => ({ default: m.Gallery })),
+  { loading: () => <div className="min-h-[40vh]" aria-hidden="true" /> },
+);
+const RSVP = dynamic(
+  () => import("./RSVP").then((m) => ({ default: m.RSVP })),
+  { loading: () => <div className="min-h-[40vh]" aria-hidden="true" /> },
+);
+const Footer = dynamic(
+  () => import("./Footer").then((m) => ({ default: m.Footer })),
+  { loading: () => <div className="min-h-[24vh]" aria-hidden="true" /> },
+);
 
 export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
@@ -31,12 +48,12 @@ export function WeddingPage() {
   return (
     <>
       <MagicalFauna phase={faunaPhase} prominent={!introDone} />
-      <GlobalAmbience />
+      {introDone && <GlobalAmbience />}
       <WeddingMusic ref={musicRef} revealed={isRevealed} />
 
       <main className="relative z-[2] m-0 block w-full p-0">
         <ScrollProgress />
-        <FloatingFlorals />
+        {introDone && <FloatingFlorals />}
 
         <Hero revealed={isRevealed} />
 

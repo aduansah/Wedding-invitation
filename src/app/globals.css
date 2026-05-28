@@ -264,4 +264,63 @@ body {
     radial-gradient(ellipse at 15% 0%, rgba(248, 200, 210, 0.28) 0%, transparent 52%),
     radial-gradient(ellipse at 85% 100%, rgba(255, 252, 249, 0.95) 0%, transparent 48%),
     linear-gradient(180deg, var(--sea-light) 0%, var(--sea-white) 55%, var(--sea-soft) 100%);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+@media (max-width: 767px) {
+  .glass-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes ambience-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.22;
+  }
+  50% {
+    transform: translate3d(12px, 0, 0) scale(1.12);
+    opacity: 0.42;
+  }
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -5vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate3d(16px, 105vh, 0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.ambience-flare {
+  animation: ambience-drift 11s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.ambience-petal {
+  animation: petal-fall linear infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .ambience-flare,
+  .ambience-petal,
+  .animate-float,
+  .animate-scroll-bounce,
+  .animate-pulse-glow {
+    animation: none !important;
+  }
 }
