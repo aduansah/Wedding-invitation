@@ -45,6 +45,7 @@ export function WeddingPage() {
     if (isIntroComplete()) {
       setIsRevealed(true);
       setIntroDone(true);
+      setScrollNudgeEnabled(true);
     }
     setSessionChecked(true);
   }, []);

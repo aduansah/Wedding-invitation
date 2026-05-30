@@ -231,6 +231,42 @@ body {
   }
 }
 
+@keyframes scroll-hint-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow:
+      0 4px 14px rgba(74, 45, 110, 0.18),
+      0 0 0 0 rgba(201, 162, 39, 0.35);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow:
+      0 6px 18px rgba(74, 45, 110, 0.24),
+      0 0 10px 2px rgba(201, 162, 39, 0.5);
+  }
+}
+
+.animate-scroll-hint-flicker {
+  animation: scroll-hint-flicker 1.6s ease-in-out infinite;
+}
+
+.animate-scroll-nudge-arrows {
+  animation: scroll-nudge-arrows 2.4s ease-in-out infinite;
+}
+
+@keyframes scroll-nudge-arrows {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 0.85;
+  }
+}
+
 @keyframes scroll-guide-arrow {
   0%,
   100% {
@@ -608,6 +644,8 @@ body {
   .floral-petal,
   .floral-leaf,
   .animate-scroll-bounce,
+  .animate-scroll-hint-flicker,
+  .animate-scroll-nudge-arrows,
   .animate-scroll-guide-arrow,
   .animate-scroll-guide-arrow-intense,
   .animate-scroll-guide-arrow-delayed,
