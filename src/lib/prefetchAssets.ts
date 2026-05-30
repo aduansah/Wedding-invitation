@@ -13,17 +13,7 @@ function appendPrefetch(href: string, as: string) {
   document.head.appendChild(link);
 }
 
-export function prefetchImages(urls: readonly string[]) {
-  for (const href of urls) {
-    appendPrefetch(href, "image");
-  }
-}
-
-export function prefetchAudio(href: string) {
-  appendPrefetch(href, "audio");
-}
-
 export function prefetchOpenerPlaybackAssets() {
-  prefetchImages(["/images/hero-background.png"]);
-  prefetchAudio("/audio/wedding-music.mp3");
+  appendPrefetch("/images/hero-background.png", "image");
+  appendPrefetch("/audio/wedding-music.mp3", "audio");
 }

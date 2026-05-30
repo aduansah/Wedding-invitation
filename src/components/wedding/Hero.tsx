@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ScrollGuide } from "./ScrollGuide";
 import gsap from "gsap";
@@ -63,7 +64,7 @@ export function Hero({
     <section
       ref={heroRef}
       id="home"
-      className="relative isolate min-h-[100svh] w-full overflow-visible pb-[min(26vh,200px)] md:pb-[min(34vh,280px)]"
+      className="relative isolate min-h-[100svh] w-full md:block md:pb-[min(34vh,280px)]"
     >
       <div
         ref={bgRef}
@@ -72,7 +73,8 @@ export function Hero({
         aria-hidden="true"
       />
 
-      <div className="absolute top-[44%] left-1/2 z-20 w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 px-6 text-center md:top-[46%]">
+      <div className="relative z-20 mx-auto w-full max-w-5xl px-6 pb-3 text-center max-md:pb-2 md:absolute md:top-[46%] md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:pb-0">
+        <div className="max-md:pt-[30svh] md:pt-0">
         <motion.p
           className="mb-1 font-[family-name:var(--font-sans)] text-[11px] font-medium tracking-[0.24em] text-purple-deep/90 uppercase md:text-xs"
           initial={{ opacity: 0, y: 12 }}
@@ -93,7 +95,7 @@ export function Hero({
           <span>{COUPLE.bride}</span>
         </motion.h1>
 
-        <div className="mt-12 md:mt-14">
+        <div className="mt-6 md:mt-14">
           <motion.p
             className="font-[family-name:var(--font-script)] text-4xl leading-none text-purple-deep md:text-5xl lg:text-6xl"
             initial={{ opacity: 0, y: 16 }}
@@ -113,47 +115,72 @@ export function Hero({
           </motion.p>
         </div>
 
-        <motion.div
-          className="mx-auto mt-10 grid max-w-lg grid-cols-4 gap-3 md:mt-12 md:gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={revealMotion}
-        >
-          {countdownItems.map((item, index) => (
-            <motion.div
-              key={item.key}
-              className="rounded-xl border border-gold/40 bg-white/45 px-2 py-4 backdrop-blur-[2px] md:px-4 md:py-5"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={revealed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-              transition={revealMotion}
-            >
-              <span className="wedding-display-title text-2xl text-purple-deep md:text-4xl">
-                {String(countdown[item.key]).padStart(2, "0")}
-              </span>
-              <p className="mt-1 font-[family-name:var(--font-sans)] text-[11px] font-semibold tracking-widest text-purple-deep/90 uppercase md:text-sm">
-                {item.label}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {!countdown.isComplete && (
-          <motion.p
-            className="relative z-20 mt-4 font-[family-name:var(--font-sans)] text-[11px] font-medium tracking-[0.35em] text-purple-deep/80 uppercase md:text-xs"
-            initial={{ opacity: 0 }}
-            animate={revealed ? { opacity: 1 } : { opacity: 0 }}
+        <div>
+          <motion.div
+            className="mx-auto mt-5 grid max-w-lg grid-cols-4 gap-2 max-md:gap-2 md:mt-12 md:gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={revealMotion}
           >
-            Until our wedding day
-          </motion.p>
-        )}
+            {countdownItems.map((item) => (
+              <motion.div
+                key={item.key}
+                className="rounded-xl border border-gold/40 bg-white/45 px-2 py-3 backdrop-blur-[2px] md:px-4 md:py-5"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={revealed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+                transition={revealMotion}
+              >
+                <span className="wedding-display-title text-2xl text-purple-deep md:text-4xl">
+                  {String(countdown[item.key]).padStart(2, "0")}
+                </span>
+                <p className="mt-1 font-[family-name:var(--font-sans)] text-[10px] font-semibold tracking-widest text-purple-deep/90 uppercase md:text-sm">
+                  {item.label}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {!countdown.isComplete && (
+            <motion.p
+              className="mt-2 font-[family-name:var(--font-sans)] text-[10px] font-medium tracking-[0.32em] text-purple-deep/80 uppercase md:mt-4 md:text-xs md:tracking-[0.35em]"
+              initial={{ opacity: 0 }}
+              animate={revealed ? { opacity: 1 } : { opacity: 0 }}
+              transition={revealMotion}
+            >
+              Until our wedding day
+            </motion.p>
+          )}
+        </div>
+        </div>
+
+        {scrollReady ? (
+          <motion.div
+            className="relative mx-auto mt-2 w-[min(88vw,360px)] md:hidden"
+            initial={{ opacity: 0 }}
+            animate={revealed ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="relative aspect-[4/5] w-full">
+              <Image
+                src={WEDDING_IMAGES.heroPhoto}
+                alt={`${COUPLE.groom} and ${COUPLE.bride}`}
+                fill
+                className="object-cover object-[center_18%]"
+                sizes="86vw"
+                priority
+              />
+            </div>
+          </motion.div>
+        ) : null}
       </div>
 
-      <StoryAscentImage
-        containerRef={heroRef}
-        src={WEDDING_IMAGES.heroPhoto}
-        active={scrollReady}
-      />
+      <div className="hidden md:block">
+        <StoryAscentImage
+          containerRef={heroRef}
+          src={WEDDING_IMAGES.heroPhoto}
+          active={scrollReady}
+        />
+      </div>
 
       <ScrollGuide visible={revealed} href="#story" />
     </section>

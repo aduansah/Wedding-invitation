@@ -1,14 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { VideoOpener } from "./VideoOpener";
-import { MagicalFauna, type FaunaPhase } from "./MagicalFauna";
 import { ScrollProgress } from "./ScrollProgress";
-import { WeddingMusic } from "./WeddingMusic";
-import { GlobalAmbience } from "./GlobalAmbience";
-import { FloatingFlorals } from "./FloatingFlorals";
+import { WeddingMusic, type WeddingMusicHandle } from "./WeddingMusic";
+import { SubtleFlorals } from "./SubtleFlorals";
+import { ScrollNudge } from "./ScrollNudge";
 import { prefetchOpenerPlaybackAssets } from "@/lib/prefetchAssets";
+import { isIntroComplete, markIntroComplete } from "@/lib/weddingSession";
 import { Hero } from "./Hero";
 import { OurStory } from "./OurStory";
 import { SectionDivider } from "./SectionDivider";
@@ -37,89 +37,87 @@ const Footer = dynamic(
 export function WeddingPage() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [introDone, setIntroDone] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [scrollNudgeEnabled, setScrollNudgeEnabled] = useState(false);
+  const musicRef = useRef<WeddingMusicHandle>(null);
 
-  const faunaPhase: FaunaPhase = isRevealed ? "hero" : "intro";
+  useLayoutEffect(() => {
+    if (isIntroComplete()) {
+      setIsRevealed(true);
+      setIntroDone(true);
+    }
+    setSessionChecked(true);
+  }, []);
 
   useEffect(() => {
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
     window.scrollTo(0, 0);
+    prefetchOpenerPlaybackAssets();
   }, []);
 
   useEffect(() => {
     if (!introDone) return;
-    document.documentElement.removeAttribute("data-intro-pending");
-    document.documentElement.removeAttribute("data-opener-ready");
-    document.getElementById("intro-boot-screen")?.remove();
 
     window.scrollTo(0, 0);
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-      if ("scrollRestoration" in history) {
-        history.scrollRestoration = "auto";
-      }
-    });
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "auto";
+    }
   }, [introDone]);
 
-  useEffect(() => {
-    if (!isRevealed) return;
-    window.scrollTo(0, 0);
-  }, [isRevealed]);
+  const handleVideoPlaying = () => {
+    musicRef.current?.play();
+  };
+
+  const handleIntroFinish = () => {
+    markIntroComplete();
+    setIntroDone(true);
+    setScrollNudgeEnabled(true);
+  };
+
+  if (!sessionChecked) {
+    return null;
+  }
 
   return (
     <>
-      <MagicalFauna phase={faunaPhase} prominent={!isRevealed} />
-      {introDone && <GlobalAmbience />}
-      <WeddingMusic revealed={isRevealed} />
+      <WeddingMusic ref={musicRef} revealed={isRevealed} resumeOnReturn={introDone && isRevealed} />
+
+      {introDone ? <SubtleFlorals /> : null}
+      <ScrollNudge enabled={scrollNudgeEnabled && introDone} />
 
       {isRevealed ? (
-        <main
-          className="wedding-main relative z-[2] m-0 block w-full p-0"
-          aria-hidden={false}
-        >
+        <main className="wedding-main relative z-[2] m-0 block w-full p-0">
           <ScrollProgress />
-          {introDone && <FloatingFlorals />}
 
           <Hero revealed scrollReady={introDone} />
 
           {introDone ? (
             <>
               <OurStory />
-
               <SectionDivider variant="floral" />
-
               <EventTimeline />
-
               <SectionDivider variant="floral" />
-
               <Location />
-
               <SectionDivider variant="floral" />
-
               <Gallery />
-
               <SectionDivider variant="floral" />
-
               <RSVP />
-
               <Footer />
             </>
           ) : null}
         </main>
       ) : null}
 
-      {!introDone && (
+      {!introDone ? (
         <VideoOpener
-          key="video-opener"
           onOpenStart={prefetchOpenerPlaybackAssets}
-          onReveal={() => {
-            setIsRevealed(true);
-            document.documentElement.removeAttribute("data-intro-pending");
-          }}
-          onFinish={() => setIntroDone(true)}
+          onVideoPlaying={handleVideoPlaying}
+          onReveal={() => setIsRevealed(true)}
+          onFinish={handleIntroFinish}
         />
-      )}
+      ) : null}
     </>
   );
 }

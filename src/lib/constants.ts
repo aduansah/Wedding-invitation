@@ -10,6 +10,7 @@ export const HASHTAG = "#Mprez26";
 /** Drop your opener animation at public/videos/opener.mp4 */
 export const OPENER_VIDEO = {
   src: "/videos/opener.mp4",
+  poster: "/images/envelope-closed.png",
   muted: true,
 } as const;
 
@@ -72,10 +73,10 @@ export const RSVP_CONTACTS = [
 /** Hero background + story photos + section divider */
 export const WEDDING_IMAGES = {
   heroBackground: "/images/hero-background.png",
-  heroPhoto: "/images/story.png",
+  heroPhoto: "/images/story.webp",
   story: "/images/our-story.jpeg",
-  story2: "/images/story2.png",
-  sectionBorder: "/images/boarder.png",
+  story2: "/images/story2.webp",
+  sectionBorder: "/images/boarder.webp",
 } as const;
 
 export const GALLERY_IMAGES = [

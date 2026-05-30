@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { CLOSING_MESSAGE, COUPLE, HASHTAG, WEDDING_DATES } from "@/lib/constants";
+import { signalMusicPause } from "@/lib/weddingSession";
 
 export function Footer() {
   const tapCount = useRef(0);
@@ -22,6 +23,7 @@ export function Footer() {
 
     if (tapCount.current >= 3) {
       tapCount.current = 0;
+      signalMusicPause();
       window.open("/admin/rsvp", "_blank", "noopener,noreferrer");
     }
   };

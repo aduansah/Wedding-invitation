@@ -45,4 +45,9 @@ next-env.d.ts
 # local rsvp data (production uses Vercel Blob)
 /data
 
+# image optimization backups
+/public/images/.optimized-backup
+
 .env*
+
+.vercel

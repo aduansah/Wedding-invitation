@@ -11,6 +11,12 @@ import {
 import { createPortal } from "react-dom";
 import { Music, VolumeX } from "lucide-react";
 import { WEDDING_AUDIO } from "@/lib/constants";
+import {
+  clearMusicResumeState,
+  getMusicPauseSignalKey,
+  getMusicResumeState,
+  saveMusicState,
+} from "@/lib/weddingSession";
 
 export type WeddingMusicHandle = {
   play: () => void;
@@ -19,12 +25,13 @@ export type WeddingMusicHandle = {
 
 type WeddingMusicProps = {
   revealed?: boolean;
+  resumeOnReturn?: boolean;
 };
 
 let sharedAudioElement: HTMLAudioElement | null = null;
 
 export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
-  function WeddingMusic({ revealed = false }, ref) {
+  function WeddingMusic({ revealed = false, resumeOnReturn = false }, ref) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const autoPlayedRef = useRef(false);
     const playPendingRef = useRef(false);
@@ -64,6 +71,7 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
       const playPromise = audio.play();
       if (playPromise === undefined) {
         sharedAudioElement = audio;
+        autoPlayedRef.current = true;
         playPendingRef.current = false;
         setIsPlaying(true);
         return;
@@ -72,6 +80,7 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
       playPromise
         .then(() => {
           sharedAudioElement = audio;
+          autoPlayedRef.current = true;
           setIsPlaying(true);
         })
         .catch(() => setHasAudio(false))
@@ -83,17 +92,71 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
     const pause = useCallback(() => {
       const audio = audioRef.current;
       if (!audio) return;
+      if (!audio.paused) {
+        saveMusicState(audio.currentTime, false);
+      }
       audio.pause();
       setIsPlaying(false);
+    }, []);
+
+    const pauseAndRemember = useCallback(() => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      if (!audio.paused) {
+        saveMusicState(audio.currentTime, true);
+        audio.pause();
+        setIsPlaying(false);
+      }
     }, []);
 
     useImperativeHandle(ref, () => ({ play, pause }), [play, pause]);
 
     useEffect(() => {
       if (!revealed || autoPlayedRef.current) return;
+
+      const resume = resumeOnReturn ? getMusicResumeState() : null;
+      if (resume?.wasPlaying) {
+        ensureSource();
+        const audio = audioRef.current;
+        if (audio) {
+          audio.currentTime = resume.currentTime;
+        }
+        autoPlayedRef.current = true;
+        play();
+        clearMusicResumeState();
+        return;
+      }
+
+      if (resumeOnReturn) return;
+
       autoPlayedRef.current = true;
       play();
-    }, [play, revealed]);
+    }, [play, revealed, resumeOnReturn, ensureSource]);
+
+    useEffect(() => {
+      if (revealed) return;
+      ensureSource();
+    }, [ensureSource, revealed]);
+
+    useEffect(() => {
+      const onStorage = (event: StorageEvent) => {
+        if (event.key === getMusicPauseSignalKey()) {
+          pauseAndRemember();
+        }
+      };
+
+      window.addEventListener("storage", onStorage);
+      return () => window.removeEventListener("storage", onStorage);
+    }, [pauseAndRemember]);
+
+    useEffect(() => {
+      return () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        saveMusicState(audio.currentTime, !audio.paused);
+        audio.pause();
+      };
+    }, []);
 
     useEffect(() => {
       const audio = audioRef.current;
@@ -143,7 +206,7 @@ export const WeddingMusic = forwardRef<WeddingMusicHandle, WeddingMusicProps>(
 
     return (
       <>
-        <audio ref={audioRef} loop preload="none" playsInline />
+        <audio ref={audioRef} loop preload="auto" playsInline />
         {mounted && button ? createPortal(button, document.body) : null}
       </>
     );

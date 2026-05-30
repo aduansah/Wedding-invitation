@@ -3,510 +3,331 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { OPENER_VIDEO } from "@/lib/constants";
+import { fireOpenerConfetti } from "@/lib/openerConfetti";
 
 type VideoOpenerProps = {
   onReveal: () => void;
   onFinish?: () => void;
   onOpenStart?: () => void;
+  onVideoPlaying?: () => void;
 };
 
-type OpenerPhase = "idle" | "playing" | "exit";
+type Phase = "idle" | "playing" | "exit";
 
-const REVEAL_LEAD_SECONDS = 0.65;
-const EXIT_MS = 780;
-const VIDEO_DISSOLVE_S = 0.72;
-const OVERLAY_FADE_DELAY_S = 0.12;
-const FRAME_READY_TIMEOUT_MS = 2800;
-const DISSOLVE_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const REVEAL_LEAD_SECONDS = 0.55;
+const EXIT_MS = 700;
+const PLAY_START_TIMEOUT_MS = 10000;
+const MAX_FALLBACK_MS = 32000;
+const CONFETTI_LEAD_SECONDS = 0.45;
 
-const OPENER_CONFETTI = [
-  "#d4af37",
-  "#f0d78c",
-  "#c9a962",
-  "#7b4ba8",
-  "#9b6fc4",
-  "#5a3580",
-  "#a78bfa",
-  "#e8d5a3",
-];
-
-const featherBursts = Array.from({ length: 12 }, (_, index) => ({
-  angle: index * 30,
-  distance: 72 + (index % 3) * 28,
-  delay: index * 0.028,
-  tone: index % 3 === 0 ? "#7b4ba8" : index % 3 === 1 ? "#d4af37" : "#f5efe6",
-}));
-
-function fireOpenerConfetti() {
-  void import("canvas-confetti").then(({ default: confetti }) => {
-    const softBurst = (
-      options: Parameters<typeof confetti>[0],
-      delayMs = 0,
-    ) => {
-      window.setTimeout(() => {
-        confetti({
-          decay: 0.94,
-          gravity: 0.62,
-          ticks: 280,
-          shapes: ["circle"],
-          scalar: 0.82,
-          drift: 0.25,
-          ...options,
-        });
-      }, delayMs);
-    };
-
-    softBurst({
-      particleCount: 34,
-      spread: 62,
-      startVelocity: 18,
-      origin: { x: 0.5, y: 0.54 },
-      colors: OPENER_CONFETTI,
-    });
-
-    softBurst(
-      {
-        particleCount: 22,
-        angle: 64,
-        spread: 48,
-        startVelocity: 22,
-        origin: { x: 0.1, y: 0.58 },
-        colors: OPENER_CONFETTI,
-      },
-      160,
-    );
-
-    softBurst(
-      {
-        particleCount: 22,
-        angle: 116,
-        spread: 48,
-        startVelocity: 22,
-        origin: { x: 0.9, y: 0.58 },
-        colors: OPENER_CONFETTI,
-      },
-      160,
-    );
-
-    softBurst(
-      {
-        particleCount: 28,
-        spread: 88,
-        startVelocity: 14,
-        origin: { x: 0.5, y: 0.46 },
-        colors: OPENER_CONFETTI,
-      },
-      360,
-    );
-  });
-}
-
-function BurstFeather({ tone }: { tone: string }) {
-  return (
-    <svg width="22" height="34" viewBox="0 0 24 40" fill="none" aria-hidden="true">
-      <path
-        d="M12 2 C12 2, 18 14, 16 28 C15 34, 12 38, 12 38 C12 38, 9 34, 8 28 C6 14, 12 2, 12 2 Z"
-        fill={tone}
-        fillOpacity="0.9"
-        stroke={tone}
-        strokeWidth="0.5"
-        strokeOpacity="0.55"
-      />
-      <path d="M12 6 L12 36" stroke={tone} strokeWidth="0.6" opacity="0.45" />
-    </svg>
-  );
-}
-
-function OpenerFeatherBurst({ active }: { active: boolean }) {
-  if (!active) return null;
-
-  return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center">
-      {featherBursts.map((feather, index) => {
-        const radians = (feather.angle * Math.PI) / 180;
-        const targetX = Math.cos(radians) * feather.distance;
-        const targetY = Math.sin(radians) * feather.distance;
-
-        return (
-          <motion.div
-            key={index}
-            className="absolute"
-            initial={{ x: 0, y: 0, opacity: 0, scale: 0.35, rotate: feather.angle - 90 }}
-            animate={{
-              x: targetX,
-              y: targetY,
-              opacity: [0, 0.55, 0.38, 0],
-              scale: [0.45, 0.95, 0.82, 0.62],
-              rotate: feather.angle - 50,
-            }}
-            transition={{
-              duration: 1.05,
-              delay: feather.delay,
-              ease: DISSOLVE_EASE,
-            }}
-          >
-            <BurstFeather tone={feather.tone} />
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-function OpenerInstruction({ ready }: { ready: boolean }) {
-  return (
-    <motion.div
-      key="opener-instruction"
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-[25] flex flex-col items-center pb-[34%] md:pb-[28%]"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.45, delay: 0.2, ease: DISSOLVE_EASE }}
-    >
-      <div
-        className="absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-[#fffcf9]/80 via-[#fff8f2]/28 to-transparent"
-        aria-hidden="true"
-      />
-
-      <motion.div
-        className="relative flex flex-col items-center gap-1"
-        animate={
-          ready
-            ? {
-                y: [0, -7, 0],
-                opacity: [0.88, 1, 0.88],
-              }
-            : undefined
-        }
-        transition={
-          ready
-            ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
-            : undefined
-        }
-      >
-        <motion.div
-          className="rounded-full border border-white/45 bg-white/50 px-3 py-1 shadow-[0_4px_14px_rgba(74,45,110,0.1)] backdrop-blur-md md:px-3.5 md:py-1.5"
-          animate={
-            ready
-              ? {
-                  scale: [1, 1.04, 1],
-                  boxShadow: [
-                    "0 4px 14px rgba(74, 45, 110, 0.1)",
-                    "0 6px 22px rgba(212, 175, 55, 0.22)",
-                    "0 4px 14px rgba(74, 45, 110, 0.1)",
-                  ],
-                }
-              : undefined
-          }
-          transition={
-            ready
-              ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
-              : undefined
-          }
-        >
-          <p className="text-center font-[family-name:var(--font-sans)] text-[9px] font-medium tracking-[0.18em] text-purple-deep/85 uppercase md:text-[10px]">
-            {ready ? "Tap to open invite" : "Preparing…"}
-          </p>
-        </motion.div>
-
-        {ready ? (
-          <motion.div
-            className="flex flex-col items-center"
-            aria-hidden="true"
-            animate={{ y: [0, 4, 0], opacity: [0.55, 0.9, 0.55] }}
-            transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <span className="block h-4 w-px rounded-full bg-gradient-to-b from-transparent via-gold/60 to-gold/35" />
-            <svg viewBox="0 0 24 24" className="mt-0.5 h-3.5 w-3.5 text-purple-deep/55" fill="none">
-              <path
-                d="M12 7v8M8.5 13.5 12 17l3.5-3.5"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </motion.div>
-        ) : null}
-      </motion.div>
-    </motion.div>
-  );
-}
-
-export function VideoOpener({ onReveal, onFinish, onOpenStart }: VideoOpenerProps) {
-  const [phase, setPhase] = useState<OpenerPhase>("idle");
-  const [showBurst, setShowBurst] = useState(false);
-  const [videoFailed, setVideoFailed] = useState(false);
-  const [frameReady, setFrameReady] = useState(false);
+export function VideoOpener({
+  onReveal,
+  onFinish,
+  onOpenStart,
+  onVideoPlaying,
+}: VideoOpenerProps) {
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [ready, setReady] = useState(false);
+  const [showPoster, setShowPoster] = useState(true);
+  const [buffering, setBuffering] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const hasTriggered = useRef(false);
-  const hasTransitioned = useRef(false);
-  const framePrimed = useRef(false);
-  const phaseRef = useRef<OpenerPhase>("idle");
+  const startedRef = useRef(false);
+  const finishedRef = useRef(false);
+  const playingRef = useRef(false);
+  const confettiFiredRef = useRef(false);
+  const playStartTimerRef = useRef<number | null>(null);
+  const maxPlayTimerRef = useRef<number | null>(null);
 
-  phaseRef.current = phase;
-
-  const dismissBootScreen = useCallback(() => {
-    document.documentElement.setAttribute("data-opener-ready", "");
-    setFrameReady(true);
+  const clearTimers = useCallback(() => {
+    if (playStartTimerRef.current !== null) {
+      window.clearTimeout(playStartTimerRef.current);
+      playStartTimerRef.current = null;
+    }
+    if (maxPlayTimerRef.current !== null) {
+      window.clearTimeout(maxPlayTimerRef.current);
+      maxPlayTimerRef.current = null;
+    }
   }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if ("scrollRestoration" in history) {
-      history.scrollRestoration = "manual";
+    document.body.style.overflow = "hidden";
+
+    const video = videoRef.current;
+    if (video) {
+      video.load();
     }
 
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.style.background = "var(--sea-white)";
     return () => {
       document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-      document.documentElement.style.background = "";
-      document.documentElement.removeAttribute("data-opener-ready");
+      clearTimers();
     };
-  }, []);
-
-  useEffect(() => {
-    if (!frameReady) return;
-    document.documentElement.setAttribute("data-opener-ready", "");
-  }, [frameReady]);
+  }, [clearTimers]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    video.preload = "auto";
-    video.load();
+    const markReady = () => setReady(true);
+    const timeout = window.setTimeout(markReady, 2000);
 
-    const primeFirstFrame = () => {
-      if (framePrimed.current || hasTriggered.current || phaseRef.current !== "idle") return;
-      framePrimed.current = true;
+    video.addEventListener("loadeddata", markReady, { once: true });
+    video.addEventListener("canplay", markReady, { once: true });
 
-      video.pause();
-      if (video.currentTime < 0.001) {
-        try {
-          video.currentTime = 0.001;
-        } catch {
-          // Some browsers reject seeks before metadata is ready.
-        }
-      }
-      dismissBootScreen();
-    };
-
-    const handleError = () => {
-      setVideoFailed(true);
-      dismissBootScreen();
-    };
-
-    const readyTimeout = window.setTimeout(() => {
-      dismissBootScreen();
-    }, FRAME_READY_TIMEOUT_MS);
-
-    video.addEventListener("loadeddata", primeFirstFrame);
-    video.addEventListener("canplaythrough", primeFirstFrame, { once: true });
-    video.addEventListener("error", handleError);
-
-    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      primeFirstFrame();
+    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      markReady();
     }
 
-    return () => {
-      window.clearTimeout(readyTimeout);
-      video.removeEventListener("loadeddata", primeFirstFrame);
-      video.removeEventListener("canplaythrough", primeFirstFrame);
-      video.removeEventListener("error", handleError);
-    };
-  }, [dismissBootScreen]);
+    return () => window.clearTimeout(timeout);
+  }, []);
 
-  useEffect(() => {
-    if (!frameReady) return;
-    void import("canvas-confetti");
-  }, [frameReady]);
+  const triggerConfetti = useCallback(() => {
+    if (confettiFiredRef.current) return;
+    confettiFiredRef.current = true;
+    fireOpenerConfetti();
+  }, []);
 
-  const beginRevealTransition = useCallback(() => {
-    if (hasTransitioned.current) return;
-    hasTransitioned.current = true;
+  const finish = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    clearTimers();
+    if (!confettiFiredRef.current) {
+      triggerConfetti();
+    }
 
     const video = videoRef.current;
     if (video) {
       video.pause();
-      video.muted = true;
-      video.volume = 0;
     }
 
-    setShowBurst(true);
-    requestAnimationFrame(() => {
-      fireOpenerConfetti();
-    });
     setPhase("exit");
     onReveal();
-    window.scrollTo(0, 0);
 
     window.setTimeout(() => {
       onFinish?.();
-      window.scrollTo(0, 0);
       document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
     }, EXIT_MS);
-  }, [onFinish, onReveal]);
+  }, [clearTimers, onFinish, onReveal, triggerConfetti]);
 
-  const startOpener = useCallback(async () => {
-    if (hasTriggered.current || phaseRef.current !== "idle") return;
-    hasTriggered.current = true;
-    phaseRef.current = "playing";
-    dismissBootScreen();
-    setPhase("playing");
-
+  const scheduleMaxPlayTimeout = useCallback(() => {
     const video = videoRef.current;
-    if (!video || videoFailed) {
-      onOpenStart?.();
-      beginRevealTransition();
-      return;
+    const durationMs =
+      video && Number.isFinite(video.duration) && video.duration > 0
+        ? video.duration * 1000 + 1500
+        : MAX_FALLBACK_MS;
+
+    if (maxPlayTimerRef.current !== null) {
+      window.clearTimeout(maxPlayTimerRef.current);
     }
 
-    const tryPlay = async () => {
-      video.currentTime = 0;
-      await video.play();
-    };
+    maxPlayTimerRef.current = window.setTimeout(() => {
+      finish();
+    }, durationMs);
+  }, [finish]);
 
-    try {
-      await tryPlay();
-      onOpenStart?.();
-    } catch {
-      try {
-        await tryPlay();
-        onOpenStart?.();
-      } catch {
-        beginRevealTransition();
-      }
+  const handlePlaying = useCallback(() => {
+    playingRef.current = true;
+    setBuffering(false);
+    setShowPoster(false);
+    onVideoPlaying?.();
+
+    if (playStartTimerRef.current !== null) {
+      window.clearTimeout(playStartTimerRef.current);
+      playStartTimerRef.current = null;
     }
-  }, [beginRevealTransition, dismissBootScreen, onOpenStart, videoFailed]);
 
-  const openInvitation = useCallback(() => {
-    void startOpener();
-  }, [startOpener]);
+    scheduleMaxPlayTimeout();
+  }, [onVideoPlaying, scheduleMaxPlayTimeout]);
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (phaseRef.current !== "idle" || hasTriggered.current || !frameReady) return;
-    touchStart.current = { x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerUp = () => {
-    if (phaseRef.current !== "idle" || !touchStart.current || hasTriggered.current || !frameReady) return;
-
-    touchStart.current = null;
-    openInvitation();
-  };
-
-  const handlePointerCancel = () => {
-    touchStart.current = null;
-  };
-
-  useEffect(() => {
-    if (phase !== "playing") return;
-
-    const watchdog = window.setTimeout(() => {
-      beginRevealTransition();
-    }, 12000);
-
-    return () => {
-      window.clearTimeout(watchdog);
-    };
-  }, [beginRevealTransition, phase]);
+  const handleWaiting = useCallback(() => {
+    if (phase === "playing") {
+      setBuffering(true);
+    }
+  }, [phase]);
 
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
-    if (!video || !Number.isFinite(video.duration) || hasTransitioned.current) return;
+    if (!video || finishedRef.current) return;
+
+    if (video.currentTime > 0.04) {
+      setShowPoster(false);
+      setBuffering(false);
+    }
+
+    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
 
     const remaining = video.duration - video.currentTime;
-    if (remaining <= REVEAL_LEAD_SECONDS) {
-      beginRevealTransition();
-    }
-  }, [beginRevealTransition]);
 
-  const handleVideoEnded = useCallback(() => {
-    beginRevealTransition();
-  }, [beginRevealTransition]);
+    if (remaining <= CONFETTI_LEAD_SECONDS) {
+      triggerConfetti();
+    }
+
+    if (remaining <= REVEAL_LEAD_SECONDS) {
+      finish();
+    }
+  }, [finish, triggerConfetti]);
+
+  const open = useCallback(() => {
+    if (startedRef.current || !ready) return;
+    startedRef.current = true;
+    onOpenStart?.();
+    setPhase("playing");
+    setBuffering(true);
+
+    const video = videoRef.current;
+    if (!video) {
+      finish();
+      return;
+    }
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute("webkit-playsinline", "true");
+    video.currentTime = 0;
+
+    playStartTimerRef.current = window.setTimeout(() => {
+      if (!playingRef.current) {
+        finish();
+      }
+    }, PLAY_START_TIMEOUT_MS);
+
+    const playAttempt = video.play();
+    if (playAttempt !== undefined) {
+      playAttempt.catch(() => {
+        video.load();
+        const retry = video.play();
+        if (retry !== undefined) {
+          retry.catch(() => finish());
+        } else {
+          finish();
+        }
+      });
+    }
+  }, [finish, onOpenStart, ready]);
+
+  const instructionText =
+    phase === "playing" && buffering
+      ? "Opening your invitation…"
+      : ready
+        ? "Tap to open your invitation"
+        : "Preparing your invitation…";
 
   return (
-    <motion.div
-      className="video-opener fixed inset-0 z-[250] overflow-hidden"
-      style={{ pointerEvents: phase === "exit" ? "none" : "auto" }}
-      animate={{ opacity: phase === "exit" ? 0 : 1 }}
-      transition={{
-        duration: VIDEO_DISSOLVE_S,
-        delay: phase === "exit" ? OVERLAY_FADE_DELAY_S : 0,
-        ease: DISSOLVE_EASE,
+    <div
+      className={`video-opener fixed inset-0 z-[250] bg-black transition-opacity duration-700 ${
+        phase === "exit" ? "pointer-events-none opacity-0" : "opacity-100"
+      }`}
+      onClick={() => {
+        if (phase === "idle" && ready) {
+          open();
+        }
       }}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
       role="button"
       tabIndex={0}
       aria-label="Open the wedding invitation"
       onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
+        if ((event.key === "Enter" || event.key === " ") && phase === "idle" && ready) {
           event.preventDefault();
-          if (frameReady) openInvitation();
+          open();
         }
       }}
     >
-      <motion.div
-        className="absolute right-0 bottom-0 z-10 h-full w-full"
-        initial={{ opacity: 1, scale: 1 }}
-        animate={{
-          opacity: phase === "exit" ? 0 : 1,
-          scale: phase === "exit" ? 1.02 : 1,
-        }}
-        transition={{ duration: VIDEO_DISSOLVE_S, ease: DISSOLVE_EASE }}
-      >
-        <video
-          ref={videoRef}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          src={OPENER_VIDEO.src}
-          playsInline
-          muted={OPENER_VIDEO.muted}
-          preload="auto"
-          disablePictureInPicture
-          onError={() => {
-            setVideoFailed(true);
-            dismissBootScreen();
-          }}
-          onEnded={handleVideoEnded}
-          onTimeUpdate={handleTimeUpdate}
-        />
-      </motion.div>
-
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-20"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(255, 252, 249, 0.42) 0%, rgba(255, 252, 249, 0.08) 18%, transparent 42%), radial-gradient(circle at 50% 52%, rgba(244, 236, 220, 0.35) 0%, rgba(212, 175, 55, 0.08) 38%, transparent 72%)",
-        }}
-        initial={{ opacity: 0 }}
-        animate={{
-          opacity:
-            phase === "exit" ? [0, 0.42, 0] : phase === "idle" ? 0.55 : 0,
-        }}
-        transition={{ duration: 1.05, ease: DISSOLVE_EASE, times: [0, 0.38, 1] }}
-        aria-hidden="true"
+      <video
+        ref={videoRef}
+        className="absolute inset-0 h-full w-full object-cover"
+        src={OPENER_VIDEO.src}
+        poster={OPENER_VIDEO.poster}
+        playsInline
+        muted
+        preload="auto"
+        disablePictureInPicture
+        onPlaying={handlePlaying}
+        onWaiting={handleWaiting}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={finish}
+        onError={() => finish()}
       />
 
-      <OpenerFeatherBurst active={showBurst} />
+      {showPoster ? (
+        <img
+          src={OPENER_VIDEO.poster}
+          alt=""
+          className="pointer-events-none absolute inset-0 z-[5] h-full w-full object-cover"
+          aria-hidden="true"
+        />
+      ) : null}
 
       <AnimatePresence>
-        {phase === "idle" ? <OpenerInstruction ready={frameReady} /> : null}
+        {(phase === "idle" || (phase === "playing" && buffering)) ? (
+          <motion.div
+            key="opener-instructions"
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/70 via-black/35 to-transparent px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-20 md:px-8 md:pt-8 md:pb-24"
+          >
+            <div className="mx-auto flex max-w-lg flex-col items-center text-center">
+              <motion.p
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.12 }}
+                className="font-[family-name:var(--font-script)] text-[2rem] leading-none text-white/95 md:text-[2.35rem]"
+              >
+                You&apos;re Invited
+              </motion.p>
+
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.7, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                className="opener-instruction-line mt-3 h-px w-16 origin-center bg-gradient-to-r from-transparent via-gold to-transparent md:w-20"
+                aria-hidden="true"
+              />
+
+              <motion.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.38 }}
+                className="opener-instruction-pill mt-4 rounded-full border border-white/30 bg-white/12 px-5 py-2.5 font-[family-name:var(--font-sans)] text-[11px] font-semibold tracking-[0.22em] text-white uppercase shadow-[0_8px_28px_rgba(0,0,0,0.22)] backdrop-blur-md md:text-xs md:tracking-[0.26em]"
+              >
+                {instructionText}
+              </motion.p>
+
+              {phase === "idle" && ready ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.65, duration: 0.45 }}
+                  className="mt-4 flex flex-col items-center gap-2"
+                  aria-hidden="true"
+                >
+                  <span className="relative flex h-10 w-10 items-center justify-center">
+                    <motion.span
+                      className="absolute inset-0 rounded-full border border-white/35"
+                      animate={{ scale: [1, 1.45, 1], opacity: [0.55, 0, 0.55] }}
+                      transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+                    />
+                    <motion.span
+                      className="h-2.5 w-2.5 rounded-full bg-gold shadow-[0_0_12px_rgba(212,175,55,0.65)]"
+                      animate={{ scale: [1, 0.92, 1] }}
+                      transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </span>
+                  <span className="font-[family-name:var(--font-sans)] text-[9px] tracking-[0.2em] text-white/75 uppercase">
+                    Tap anywhere
+                  </span>
+                </motion.div>
+              ) : null}
+            </div>
+          </motion.div>
+        ) : null}
       </AnimatePresence>
 
       <span className="sr-only">
-        {frameReady
-          ? "Tap to open your wedding invitation"
-          : "Wedding invitation loading"}
+        {ready ? "Tap to open your wedding invitation" : "Wedding invitation loading"}
       </span>
-    </motion.div>
+    </div>
   );
 }

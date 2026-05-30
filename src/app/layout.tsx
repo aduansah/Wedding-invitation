@@ -41,11 +41,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-intro-pending=""
       suppressHydrationWarning
       className={`${playfair.variable} ${greatVibes.variable} ${bodyFont.variable}`}
     >
       <head>
+        <link
+          rel="preload"
+          href={OPENER_VIDEO.poster}
+          as="image"
+          fetchPriority="high"
+        />
         <link
           rel="preload"
           href={OPENER_VIDEO.src}

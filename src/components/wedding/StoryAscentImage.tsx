@@ -17,6 +17,8 @@ const variantConfig = {
   hero: {
     shell: "w-[min(78vw,340px)] md:w-[380px]",
     yRange: [340, 64] as [number, number],
+    yClamp: [340, 64, 64, 64] as [number, number, number, number],
+    scrollClamp: [0, 0.45, 0.7, 1] as [number, number, number, number],
     reducedTranslate: "translate-y-[18%]",
     zClass: "z-[8]",
     scrollInput: [0, 0.45] as [number, number],
